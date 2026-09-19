@@ -1,124 +1,129 @@
 # ABC Doctor — build checklist
 
-Frontend first. Backend proceeds in parallel. Nothing here is built yet.
+Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
+
+**Phases 1-4 are complete** bar the custom quiz modal. Phase 5 and the backend remain.
+
+**Done:** foundation, navigation, all screens, native config, EAS builds.
+**Not done:** persistence, the backend, and five of the six upgrades.
 
 ## Locked decisions
 
-- **Primary blue: `#007AFF` light / `#0A84FF` dark** — putni-nalozi's iOS system blue. The web
-  prototype's cyan-500 is dropped.
-- **Dark is AMOLED** (`#000000` background), default on launch. Light theme second. Three modes
-  (`system` / `light` / `dark`), as both native apps do it.
-- **Expo Router** with `(tabs)`, native tabs on iOS, classic tabs on Android.
-- **i18n from the first component** — fitness's i18next setup, English canonical.
-- **All packages from fitness except the three Health ones** (`@kingstinct/react-native-healthkit`,
-  `expo-health-connect`, `react-native-health-connect`).
-- **All five upgrades are in scope.**
-
+- **Primary blue: `#007AFF` light / `#0A84FF` dark** — putni-nalozi's iOS system blue.
+- **Dark is AMOLED** (`#000000`), default on launch. Three modes (`system`/`light`/`dark`).
+- **Expo Router**, native tabs on iOS, classic tabs on Android.
 - **Auth: Laravel Sanctum**, same as freightbook. No better-auth.
-- **Languages: `bs`, `en`, `de`** — same set as freightbook. English canonical.
+- **Languages: `bs`, `en`, `de`**, English canonical.
+- **Bundle id `abc.qla.dev`**, matching `radni.qla.dev` and `freightbook.qla.dev`.
+- **All packages from fitness except the three Health ones.**
+- **All six upgrades in scope.**
 
-## Phase 1 — foundation
+## Phase 1 — foundation ✅
 
-- [ ] Install Expo Router + navigation: `expo-router`, `react-native-screens`,
-      `react-native-safe-area-context`, `react-native-gesture-handler`, `react-native-reanimated`,
-      `react-native-worklets`, `react-native-pager-view`
-- [ ] Install UI/native: `expo-glass-effect`, `expo-blur`, `expo-symbols`, `@expo/ui`,
-      `@expo/material-symbols`, `lucide-react-native`, `react-native-svg`, `expo-image`,
-      `expo-linear-gradient`, `@gorhom/bottom-sheet`, `react-native-toast-message`,
-      `@shopify/flash-list`
-- [ ] Install media/sensors: `expo-camera`, `expo-audio`, `expo-speech`, `expo-haptics`,
-      `expo-image-picker`, `expo-image-manipulator`
-- [ ] Install pickers: `@react-native-community/datetimepicker`, `react-native-ui-datepicker`
-- [ ] Install state/data: `zustand`, `@tanstack/react-query`, `zod`,
-      `@react-native-async-storage/async-storage`, `react-native-mmkv`, `expo-sqlite`,
-      `expo-secure-store`
-- [ ] Install AI/chat: `@assistant-ui/react-native`, `@assistant-ui/react-ai-sdk`,
-      `react-native-enriched-markdown`, `remend`, `react-native-keyboard-controller`
-- [ ] Install scheduling/background: `ts-fsrs`, `expo-notifications`, `expo-background-task`,
-      `expo-task-manager`
-- [ ] Install charts: `@shopify/react-native-skia`, `victory-native`
-- [ ] Install i18n: `i18next`, `react-i18next`, `expo-localization`
-- [ ] Install platform extras: `expo-widgets`, `@bacons/apple-targets`, `expo-constants`,
-      `expo-device`, `expo-application`, `expo-updates`, `expo-splash-screen`, `expo-system-ui`,
-      `expo-navigation-bar`, `expo-font`, `expo-asset`, `expo-linking`, `expo-web-browser`,
-      `expo-clipboard`, `expo-sharing`, `expo-file-system`, `expo-network`, `expo-keep-awake`
-- [ ] `theme/colors.ts` + `theme/ThemeProvider.tsx` ported, blue swapped, AMOLED default
-- [ ] `theme/styles.ts` — `createGlobalStyles(c)` with screen/title/subtitle/separator/sectionLabel
-- [ ] i18next: `src/localization/locales/<lang>/translation.json`, `localeRegistry.json`,
-      English fallback, `useLanguage()` context
-- [ ] Folder skeleton: `app/`, `components/common/`, `components/<domain>/`, `theme/`, `i18n/`,
-      `lib/`, `services/`, `context/`, `stores/`
+- [x] Navigation, UI, media, picker, state, AI-chat, scheduling, chart, i18n and platform
+      packages installed — 73 in total, listed in [PACKAGES.md](PACKAGES.md)
+- [x] `theme/colors.ts` + `theme/ThemeProvider.tsx`, blue swapped, AMOLED default
+- [x] `theme/styles.ts` — `createGlobalStyles(c)`
+- [x] i18next in `bs`/`en`/`de`, English fallback, `useLanguage()` context
+- [x] Folder skeleton
+- [x] `localeRegistry.json` — the shipping contract; aliases (hr/sr → bs) are data, not code
+- [x] `services/storage.ts` — MMKV-backed persistence
 
-## Phase 2 — component library
+## Phase 2 — component library ✅ 23 of 23
 
-Ported from putni-nalozi + freightbook native (present in both, so they are the stable core):
+- [x] `AppButton` (6 tones, sound + haptics inside the component)
+- [x] `AppCard`, `List`, `ListItem`, `SectionHeader`, `SegmentedControl`, `EmptyState`
+- [x] `GlassPanel` with `isLiquidGlassAvailable()` → `expo-blur` → tinted view
+- [x] `ProgressRing`, `Badge`, `FlashcardFlipCard`, `QuizOptionRow`
+- [x] `lib/sound.ts`, taken from freightbook verbatim
+- [x] `AppField` with error state, `AppDateField` with the iOS/Android split
+- [x] `CustomBottomSheet`, `ActionBottomSheet`, `FooterCta`, `CheckRow`, `OptionRow`
+- [x] `ErrorBoundary` — themeless on purpose, it must render when providers are what failed
+- [x] `HighYieldStars`, `CategoryChip` (colour hashed from the name, stable across screens)
 
-- [ ] `AppButton` — tones `primary` / `dark` / `secondary` / `ghost` / `danger` / `success`,
-      sound + haptics inside the component
-- [ ] `AppCard`, `AppField`, `List`, `ListItem`, `SectionHeader`, `SegmentedControl`
-- [ ] `CustomBottomSheet`, `ActionBottomSheet`, `EmptyState`, `FooterCta`, `CheckRow`, `OptionRow`
-- [ ] `AppDateField`, `ErrorBoundary`
-- [ ] Glass: `GlassPanel` (freightbook) + `LiquidGlassSurface` (fitness), with
-      `isLiquidGlassAvailable()` falling back to `expo-blur` below iOS 26
-- [ ] New for this app: `ProgressRing`, `Badge`, `FlashcardFlipCard`, `QuizOptionRow`,
-      `HighYieldStars`, `CategoryChip`
-- [ ] `lib/sound.ts` (`playClickSound`) + haptics wired into primitives, not call sites
+## Phase 3 — navigation shell ✅
 
-## Phase 3 — navigation shell
+- [x] `app/_layout.tsx` — ThemeProvider, LanguageProvider, QueryClientProvider
+- [x] `app/(tabs)/_layout.tsx` — `NativeTabs` (iOS) / `Tabs` (Android)
+- [x] Five tabs: Home, Handbook, Quiz, Simulator, AI Doctor
+- [x] SF Symbol pairs per tab, lucide on Android
+- [x] `blurEffect` systemMaterial, `tintColor` blue
+- [x] `role="search"` on Handbook
+- [x] `headerBackButtonDisplayMode: 'minimal'` — chevron only, no route-group label
+- [x] Pushed routes: `/flashcards`, `/triage`, `/progress`, `/topic/[id]`, `/quiz/player`
+- [x] Root-level surfaces outside the tabs: `/chat`, `/voice`, `/simulation`
+- [x] `Stack.Toolbar.Button` settings icon on iOS, `headerRight` on Android
+- [x] AuthProvider — Sanctum token in SecureStore, not MMKV
 
-- [ ] `app/_layout.tsx` — ThemeProvider, LanguageProvider, AuthProvider, QueryClientProvider
-- [ ] `app/(tabs)/_layout.tsx` — `NativeTabs` (iOS) / `Tabs` (Android) split
-- [ ] Five tabs: Home, Handbook, Quiz, Simulator, AI Doctor
-- [ ] SF Symbol pairs per tab (`default` / `selected`), lucide equivalents on Android
-- [ ] `blurEffect` = `systemMaterialDark` / `systemMaterialLight`, `tintColor` = blue
-- [ ] `Stack.Toolbar.Button` header icons (theme toggle, search, profile)
-- [ ] `role="search"` on the tab that gets the liquid search treatment
-- [ ] Pushed routes: `/flashcards`, `/triage`, `/progress`, `/topic/[id]`, `/quiz/player`
+## Phase 4 — screens ✅
 
-## Phase 4 — screens
+- [x] Home, Handbook, topic detail, Quiz, quiz player, Flashcards, Triage, AI Doctor, Progress
+- [x] Patient simulator rebuilt as setup + consultation (see Phase 5)
+- [x] Seed data ported as typed fixtures (1871 lines)
+- [x] **Storage** — MMKV holds progress, bookmarks, quiz history, notes, the FSRS review log
+      and the streak. Home, Progress and Settings read stored values, not fixtures.
+- [x] Settings screen: theme, language, stats, reset
+- [ ] Custom quiz modal — the one Phase 4 item left
 
-- [ ] Home, Handbook (+ `TopicDetailView`), Quiz (+ player, + custom modal), Flashcards,
-      Patient Simulator (756 lines in web, the big one), Triage, AI Doctor, Progress
-- [ ] Seed data ported as typed fixtures (~1560 lines: topics, quizzes, flashcards,
-      patient cases, triage scenarios)
-- [ ] Storage moved to MMKV/AsyncStorage keeping the four existing key semantics:
-      progress, bookmarks, quiz history, notes
+## Phase 5 — upgrades ⚠️ 1 of 6
 
-## Phase 5 — upgrades (all in scope)
+- [x] **Patient simulator** (added mid-flight, not in the original list) — setup screen with
+      difficulty, specialty, sex, age band and randomise; consultation where the patient opens
+      unprompted; free-text questions answered from history clues by word overlap; examine and
+      investigations post findings. `generateCase()` returns the shape a backend call will.
+- [~] **FSRS** — schedules, persists and resumes; the queue is what is due. No notification
+      and no background recompute yet.
+- [~] **Widgets** — WidgetKit target written (cards due + streak, App Group `group.abc.qla.dev`),
+      registered as a config plugin. **Never compiled.** No Live Activity, no Watch, no Android
+      Glance widget. Nothing writes the values the widget reads.
+- [ ] **Voice patient simulator** — orb animates, nothing listens or speaks
+- [ ] **Camera → flashcards** — `expo-camera` installed, imported nowhere
+- [ ] **Offline-first SQLite** — `expo-sqlite` installed, imported nowhere
+- [ ] **Streaming tutor** — `remend`, `assistant-ui` and `enriched-markdown` all unused
 
-- [ ] **FSRS** — `ts-fsrs` replaces the stubbed `handleRateCard`; real `again/hard/good/easy`
-      scheduling; due-card queue; `expo-notifications` daily reminder; `expo-background-task`
-      overnight recompute
-- [ ] **Voice patient simulator** — `LenaRealtimeSession` repointed at patient personas,
-      full-duplex history-taking, spoken grading
-- [ ] **Widgets + Live Activities** — `@bacons/apple-targets`, using fitness's `targets/widget`,
-      `targets/watch`, `targets/android-widget` as templates; cards-due widget, quiz-in-progress
-      Live Activity, Watch flashcard review
-- [ ] **Camera → flashcards** — `expo-camera` capture, backend extraction modeled on
-      `OpenRouterLoadScanner`, returns generated cards + questions
-- [ ] **Offline-first SQLite** — `expo-sqlite` holds the handbook, decks, quiz bank and review
-      log so the whole app works without signal; `@tanstack/react-query` queues writes and syncs
-      on reconnect
-- [ ] **Streaming tutor** — `remend` + `react-native-enriched-markdown` + `@assistant-ui/react-native`
-      so markdown renders correctly mid-stream
+## Phase 6 — backend ❌ nothing
 
-## Phase 6 — backend (parallel, simplest that works)
+`backend/` is the blank Laravel 12 skeleton: 3 PHP files, no `agents/` directory.
 
 - [ ] Sanctum auth, `CrudController` base, `{message, data, meta, errors}` envelope
-- [ ] Models + migrations: topics, quizzes, flashcards, cases, conversations, messages,
-      ai_call_logs
-- [ ] Lena architecture lifted whole: `agents/<name>/` markdown tree, `LenaSkillCatalog`,
-      `LenaModeInstructions::split`, `LenaSkillSelector`, `LenaSkillUsage`, `LenaSkillResources`
-      (`resources.json` never enters the prompt), `AiCallLogger`
+- [ ] Models + migrations: topics, quizzes, flashcards, cases, conversations, messages, ai_call_logs
+- [ ] Lena architecture: `agents/<name>/` tree, `LenaSkillCatalog`, `LenaModeInstructions::split`,
+      `LenaSkillSelector`, `LenaSkillUsage`, `LenaSkillResources`, `AiCallLogger`
 - [ ] `LenaRealtimeSession` for voice; speech + transcription endpoints
-- [ ] Doctor modes instead of freight: patient simulator, consultation, triage, tutor
-- [ ] No freight MD skill content ported
+- [ ] Doctor modes: patient simulator, consultation, triage, tutor
 
-Full install list with versions: [PACKAGES.md](PACKAGES.md).
+## Phase 7 — native config and delivery ✅ (not in the original plan)
+
+- [x] 18 config plugins registered with their permission strings
+- [x] Android permissions: camera, audio, vibrate, notifications, boot, exact alarm, internet
+- [x] iOS entitlements: App Group; Info.plist usage strings
+- [x] `expo-build-properties`: Android SDK 36 / min 26, iOS 16.4
+- [x] EAS project `@qla-dev/abc-doctor-mobile`, `eas.json` with 4 profiles
+- [x] Builds: iOS simulator, Android APK, iOS device
+- [x] `.easignore` — `.git` object ACLs under `C:\Users\Public` break the upload scan
+- [x] native-sim workflow for streaming an iOS simulator from CI
+
+## The blunt measure
+
+Of the major packages installed, **three are imported anywhere**: `ts-fsrs`, React Query and
+the Expo runtime set. `zustand`, `zod`, MMKV, SQLite, notifications, camera, FlashList, Skia,
+victory-native, `remend`, assistant-ui, enriched-markdown, secure-store and bottom-sheet are
+installed, documented, and unused.
+
+## Next, in the order that matters
+
+1. **Persistence** — the app currently forgets everything. MMKV for prefs, SQLite for the
+   review log. Without it FSRS is theatre.
+2. **Backend** — nothing above the UI layer is real until Lena exists.
+3. **Settings screen** — needs `AppField`; without it the light theme and the bs/de catalogs
+   cannot be reached by tapping.
+4. Remaining components, then the untouched upgrades.
 
 ## Risks
 
-- `NativeTabs` is still imported from `expo-router/unstable-native-tabs` — the path may move.
-- `Stack.Toolbar.Button` accepts only SF Symbols or images, never a component. freightbook
-  pre-rasterizes its logo to PNG for this reason; any custom mark needs the same treatment.
-- `@workspace/shared` in fitness is a pnpm workspace package — not portable, do not copy.
+- `NativeTabs` is imported from `expo-router/unstable-native-tabs` — the path may move.
+- `Stack.Toolbar.Button` takes only SF Symbols or images, never a component.
+- The widget's Swift has never been compiled. If it fails, drop `@bacons/apple-targets` from
+  `plugins` and rebuild.
+- TypeScript is pinned to 5.9.3 against Expo's expected 6.0.3, with `expo.install.exclude` set.
+  Expo's own tooling requires `^5`, and 6.0.3 breaks `npm ci` on CI.
