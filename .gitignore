@@ -1,0 +1,3 @@
+# frontend/ is its own repository: qla-dev/abc-doctor-mobile.
+# It lives here for local convenience but is tracked separately.
+/frontend

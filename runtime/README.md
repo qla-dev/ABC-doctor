@@ -2,26 +2,45 @@
 
 Dev-runtime tooling and reference material for ABC Doctor. Nothing here ships with the app.
 
-## native-sim — cloud iOS simulator
+## React Native Feel
+
+<https://reactnativefeel.com/>
+
+A commercial subscription toolkit for React Native / Expo (~$19.99/mo for all products, as
+advertised on the site). **Not installed, not tried, not paid for** — evaluated from the site only.
+Three products:
+
+- **Chat** — production-ready AI chatbot for React Native and Expo: streaming, tools, voice,
+  attachments, auth. Directly relevant to ABC Doctor, which is an AI tutor chat at its core.
+- **gpt-live-1** — OpenAI voice model for full-duplex conversation without separate STT/TTS
+  vendors. Relevant to the patient-simulator and oral-exam skills.
+- **Sim** — cloud iOS simulator, below.
+
+Before adopting any of it: it is a third-party SDK and a recurring cost, and its Chat product
+overlaps with what the Laravel backend would otherwise own. Compare against `qla-dev/backend`'s
+own OpenRouter services before committing.
+
+### native-sim
 
 <https://reactnativefeel.com/sim>
 
-Streams a real iOS Simulator running on GitHub's infrastructure to the browser, so the
-Expo app in `frontend/` can be exercised on iOS without a Mac.
+Streams a real iOS Simulator running on GitHub's infrastructure to the browser, so the Expo app
+in `frontend/` could be exercised on iOS without a Mac. Agent-device proxy support means a coding
+agent can drive the simulator.
 
 ```bash
 npm i -g native-sim
 native-sim up --public --minutes 45
 ```
 
-- Builds are compiled on a GitHub runner; the native build is cached by fingerprint, so a
-  warm start is roughly 7 minutes.
-- Build artifacts are stored as GitHub release assets.
-- Free on public repos; private repos are billed per minute (~$0.062/min at time of writing).
-- Sessions are protected by a session key.
-- Supports an agent-device proxy, so a coding agent can drive the simulator directly.
+- Compiles on a GitHub runner; native build cached by fingerprint, warm start ~7 minutes.
+- Build artifacts stored as GitHub release assets.
+- Site states free on public repos, ~$0.062/min on private. How that relates to the $19.99/mo
+  subscription is unclear from the site — check before running anything.
+- Sessions protected by a session key.
 
-Check the site for current pricing and flags before relying on any number above.
+Using it requires pushing `frontend/` to GitHub first, spends runner minutes, and publishes build
+artifacts as release assets. Ask before the first run.
 
 ## Reference repositories
 
