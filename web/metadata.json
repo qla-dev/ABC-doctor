@@ -1,0 +1,6 @@
+{
+  "name": "ABC Doktori",
+  "description": "iOS-inspired medical learning operating system for medical students with handbook, AI tutor, quizzes, flashcards, and clinical simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
