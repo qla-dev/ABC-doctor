@@ -46,8 +46,22 @@ class OpenAiRealtimeClient
              * afterwards; without it the doctor's half of the call exists only as audio nobody keeps.
              */
             'input' => [
-                'noise_reduction' => ['type' => 'near_field'],
-                'transcription' => ['model' => 'whisper-1', 'language' => 'bs'],
+                /**
+                 * far_field, not near_field. Lena's caller holds the phone to their face; a
+                 * consultation here runs on the loudspeaker by default, so Nina's own voice comes
+                 * back into the microphone. Reduction runs BEFORE the turn detector, and that
+                 * bleed reaching the transcriber as "speech" is exactly when it invents a
+                 * YouTube sign-off — "welcome to the channel" — out of nothing anyone said.
+                 */
+                'noise_reduction' => ['type' => (string) config('services.openai.noise_reduction')],
+                /**
+                 * whisper-1 is the old model and the one that hallucinates on silence. The 4o
+                 * transcribers are markedly better at Bosnian and stay quiet when nothing is said.
+                 *
+                 * No `language` is pinned: forcing one made whisper guess harder at noise, and
+                 * these detect it per utterance, which also lets a case be held in English.
+                 */
+                'transcription' => ['model' => (string) config('services.openai.transcribe_model')],
             ],
         ];
 

@@ -38,6 +38,9 @@ return [
         'key' => env('OPENAI_API_KEY'),
         'realtime_model' => env('OPENAI_REALTIME_MODEL', 'gpt-realtime-2.1'),
         'realtime_voice' => env('OPENAI_REALTIME_VOICE', 'verse'),
+        'transcribe_model' => env('OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-transcribe'),
+        /** near_field for a phone at the ear, far_field for a room or a loudspeaker. */
+        'noise_reduction' => env('OPENAI_NOISE_REDUCTION', 'far_field'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
     ],
 
