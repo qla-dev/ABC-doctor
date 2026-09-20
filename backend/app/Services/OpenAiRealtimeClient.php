@@ -26,7 +26,7 @@ class OpenAiRealtimeClient
      *
      * @throws \RuntimeException
      */
-    public function mint(?string $instructions = null, ?string $voiceOverride = null): array
+    public function mint(?string $instructions = null, ?string $voiceOverride = null, ?string $context = null): array
     {
         $model = (string) config('services.openai.realtime_model');
         $voice = $voiceOverride ?: (string) config('services.openai.realtime_voice');
@@ -61,7 +61,31 @@ class OpenAiRealtimeClient
                  * No `language` is pinned: forcing one made whisper guess harder at noise, and
                  * these detect it per utterance, which also lets a case be held in English.
                  */
-                'transcription' => ['model' => (string) config('services.openai.transcribe_model')],
+                'transcription' => array_filter([
+                    'model' => (string) config('services.openai.transcribe_model'),
+                    /**
+                     * Pinned, and pinned to a LATIN-SCRIPT code. Left to detect, it hears our
+                     * language, decides Serbian, and writes the whole consultation in Cyrillic —
+                     * correct words, unusable text.
+                     */
+                    'language' => (string) config('services.openai.transcribe_language'),
+                    /**
+                     * The transcriber takes a prompt the way it takes audio: as an example of what
+                     * it is about to hear. Medical words spelled out here stop "dispneja" coming
+                     * back as something that merely rhymes with it, and the thread's own case
+                     * rides along so this patient's complaint is expected rather than guessed.
+                     */
+                    'prompt' => trim(implode(' ', array_filter([
+                        (string) config('services.openai.transcribe_prompt'),
+                        $context,
+                    ]))),
+                ]),
+                /**
+                 * Semantic turn detection, not plain silence. A VAD that cuts on a gap alone hands
+                 * over half-finished utterances, and half an utterance is exactly what comes back
+                 * as invented syllables. This one waits until what was said sounds finished.
+                 */
+                'turn_detection' => ['type' => 'semantic_vad'],
             ],
         ];
 

@@ -39,6 +39,12 @@ return [
         'realtime_model' => env('OPENAI_REALTIME_MODEL', 'gpt-realtime-2.1'),
         'realtime_voice' => env('OPENAI_REALTIME_VOICE', 'verse'),
         'transcribe_model' => env('OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-transcribe'),
+        /** A Latin-script code on purpose: `sr` would come back in Cyrillic. */
+        'transcribe_language' => env('OPENAI_TRANSCRIBE_LANGUAGE', 'hr'),
+        'transcribe_prompt' => env('OPENAI_TRANSCRIBE_PROMPT',
+            'Razgovor doktora i pacijenta, na bosanskom, latinicom. '
+            .'Anamneza, tegobe, bol, mučnina, dispneja, palpitacije, otok, vrtoglavica, '
+            .'EKG, troponin, saturacija, krvni tlak, puls, temperatura, terapija, dijagnoza.'),
         /** near_field for a phone at the ear, far_field for a room or a loudspeaker. */
         'noise_reduction' => env('OPENAI_NOISE_REDUCTION', 'far_field'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),

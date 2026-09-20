@@ -86,7 +86,7 @@ class NinaRealtimeController extends Controller
                 $skill->opens_conversation ? (string) $skill->opening_prompt : null,
             ])));
 
-            $secret = $openai->mint($instructions, $conversation->voice);
+            $secret = $openai->mint($instructions, $conversation->voice, $conversation->context);
         } catch (\Throwable $e) {
             return ApiResponse::fail('Could not start a voice session.', ['openai' => [$e->getMessage()]], 502);
         }
