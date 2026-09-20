@@ -13,15 +13,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class NinaSkill extends Model
 {
     protected $fillable = [
-        'parent_id', 'key', 'name', 'description',
-        'supports_text', 'supports_voice', 'position', 'is_active',
+        'parent_id', 'key', 'name', 'description', 'system_prompt',
+        'supports_text', 'supports_voice', 'opens_conversation',
+        'opening_prompt', 'turn_reminder', 'model', 'position', 'is_active',
     ];
+
+    /**
+     * What Nina is told is the server's business. The catalogue endpoint is public to every
+     * client, and a system prompt handed out there is a system prompt anyone can work around.
+     */
+    protected $hidden = ['system_prompt', 'opening_prompt', 'turn_reminder'];
 
     protected function casts(): array
     {
         return [
             'supports_text' => 'boolean',
             'supports_voice' => 'boolean',
+            'opens_conversation' => 'boolean',
             'is_active' => 'boolean',
         ];
     }

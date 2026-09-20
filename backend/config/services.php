@@ -14,6 +14,33 @@ return [
     |
     */
 
+    /*
+     * The model Nina speaks through. OpenRouter because it is how model calls are made in the
+     * sibling repos, and because one key reaches every model rather than one key per provider.
+     *
+     * With no key set, NinaResponder falls back to a canned reply and says so in the message's
+     * meta — the app keeps working locally and the reason is legible instead of a 500.
+     */
+    'openrouter' => [
+        'key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'google/gemini-2.5-flash'),
+        /** Tried when the primary refuses — a dead slug, a rate limit, a model pulled overnight. */
+        'fallback_model' => env('OPENROUTER_FALLBACK_MODEL', 'anthropic/claude-3.5-haiku'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
+        'timeout' => (int) env('OPENROUTER_TIMEOUT', 60),
+    ],
+
+    /*
+     * Voice does NOT go through OpenRouter. A realtime model is not something OpenRouter lets a
+     * caller select, so the spoken path talks to OpenAI directly and keeps its own key.
+     */
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'realtime_model' => env('OPENAI_REALTIME_MODEL', 'gpt-realtime-2.1'),
+        'realtime_voice' => env('OPENAI_REALTIME_VOICE', 'verse'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -32,7 +32,8 @@ class MessageController extends Controller
         ]);
 
         $conversation = Conversation::with('skill')->findOrFail($data['conversation_id']);
-        $modality = $data['modality'] ?? 'text';
+        // The thread's mode is the default; a request may still name one explicitly.
+        $modality = $data['modality'] ?? $conversation->modality;
 
         // The skill's flags are the contract, so they are enforced here rather than trusted to
         // the client that drew the picker.
