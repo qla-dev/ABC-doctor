@@ -1,4 +1,4 @@
-@extends('nina.layout', ['title' => 'Nina — '.$skill->name])
+@extends('mark.layout', ['title' => 'Mark — '.$skill->name])
 
 @section('content')
     <h1>{{ $skill->name }}</h1>
@@ -8,7 +8,7 @@
         <div class="card" style="border-color: var(--green); color: var(--green)">Sačuvano.</div>
     @endif
 
-    <form method="POST" action="{{ route('nina.skill.save', $skill) }}">
+    <form method="POST" action="{{ route('mark.skill.save', $skill) }}">
         @csrf
         @foreach ([
             'name' => 'Ime',

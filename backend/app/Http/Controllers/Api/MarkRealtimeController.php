@@ -10,7 +10,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class NinaRealtimeController extends Controller
+class MarkRealtimeController extends Controller
 {
     /**
      * One side of a spoken turn, saved as an ordinary message.
@@ -21,7 +21,7 @@ class NinaRealtimeController extends Controller
      *
      * Deliberately NOT `POST /messages`: that one answers. These turns have already been spoken
      * and answered inside the call, so asking the text model to reply again would put a second,
-     * contradictory Nina into the same thread.
+     * contradictory Mark into the same thread.
      */
     public function transcript(Request $request): JsonResponse
     {
@@ -75,7 +75,7 @@ class NinaRealtimeController extends Controller
         }
 
         try {
-            // The same instructions the written turns run on, so Nina is the same person either
+            // The same instructions the written turns run on, so Mark is the same person either
             // way; a skill that opens says so here too, since a spoken patient also speaks first.
             $instructions = trim(implode("\n\n", array_filter([
                 (string) $skill->system_prompt,

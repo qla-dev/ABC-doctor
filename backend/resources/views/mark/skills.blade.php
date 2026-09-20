@@ -1,11 +1,11 @@
-@extends('nina.layout', ['title' => 'Nina — vještine'])
+@extends('mark.layout', ['title' => 'Mark — vještine'])
 
 @section('content')
     <h1>Vještine</h1>
     <div class="sub">{{ $skills->count() }} u katalogu · mijenjaj tekst ovdje umjesto migracijom</div>
 
     @foreach ($skills as $skill)
-        <a class="card" href="{{ route('nina.skill', $skill) }}">
+        <a class="card" href="{{ route('mark.skill', $skill) }}">
             <div class="row">
                 <div class="grow">
                     <div class="name">{{ $skill->position }}. {{ $skill->name }}</div>

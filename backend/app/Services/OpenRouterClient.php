@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * One call to OpenRouter's chat completions, and nothing else.
  *
- * Kept separate from NinaResponder so the thing that decides WHAT to say is not also the thing
+ * Kept separate from MarkResponder so the thing that decides WHAT to say is not also the thing
  * that knows how to speak HTTP — swapping providers later touches this file only.
  */
 class OpenRouterClient

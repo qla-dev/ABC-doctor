@@ -21,7 +21,7 @@ use RuntimeException;
  * through OpenRouter, which does not let a caller pick a transcription model, so it needs a
  * fallback. We are already talking to OpenAI directly for the realtime key.
  */
-class NinaTranscription
+class MarkTranscription
 {
     public function configured(): bool
     {

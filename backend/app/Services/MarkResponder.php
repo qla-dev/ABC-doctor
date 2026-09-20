@@ -6,16 +6,36 @@ use App\Models\Conversation;
 use App\Models\Message;
 
 /**
- * Nina's side of a turn: assemble what she is told, call the model, persist what she says.
+ * Mark's side of a turn: assemble what he is told, call the model, persist what he says.
  *
  * When no key is configured — or the call fails — this writes a canned reply instead and records
  * why in `meta`. The app then keeps working on a laptop with no credentials, and a failure reads
  * as a message in the thread rather than a 500 at the client.
  */
-class NinaResponder
+class MarkResponder
 {
     /** How much of the thread goes back with each turn. */
     private const HISTORY_LIMIT = 30;
+
+    /**
+     * How every skill writes, whatever it is being.
+     *
+     * In code rather than in each skill's prompt, for two reasons: it is true of all of them
+     * including ones added later, and a skill edited through the web editor cannot lose it by
+     * accident. What the skill says stays the skill's business; how it reads is the house's.
+     *
+     * The ban on markdown is not a matter of taste. The chat renders plain text, so a model that
+     * reaches for **bold** and bullet lists puts literal asterisks on screen — and even where
+     * they render, a colleague answering a question does not answer in headings.
+     */
+    private const STYLE = <<<'TXT'
+    Piši kao što govoriš, kolegi koji je pitao. Cijele rečenice, bez zvjezdica,
+    bez crtica na početku reda, bez naslova i bez podebljavanja — ništa od toga se
+    ovdje ne prikazuje kako treba i čita se kao izvještaj umjesto kao odgovor.
+    Ako nabrajaš, nabroji u rečenici: prvo ovo, pa ono, a pazi na treće.
+    Bez uvodnih fraza i bez sažetka na kraju onoga što si upravo rekao.
+    Odgovori na pitanje i stani.
+    TXT;
 
     public function __construct(private readonly OpenRouterClient $client) {}
 
@@ -28,6 +48,7 @@ class NinaResponder
         $skill = $conversation->skill;
         $parts = array_filter([
             (string) $skill?->system_prompt,
+            trim(preg_replace('/^[ \t]+/m', '', self::STYLE)),
             filled($conversation->context) ? "Za ovaj razgovor vrijedi: {$conversation->context}" : null,
             // Last line of the one system instruction, where it outweighs the history above it.
             filled($skill?->turn_reminder) ? "OBAVEZNO PRAVILO: {$skill->turn_reminder}" : null,
@@ -37,7 +58,7 @@ class NinaResponder
     }
 
     /**
-     * The first turn, when the skill says Nina opens. The instruction that produces it is sent
+     * The first turn, when the skill says Mark opens. The instruction that produces it is sent
      * but never persisted — it is stage direction, not something the doctor said.
      */
     public function open(Conversation $conversation): ?Message
@@ -124,9 +145,9 @@ class NinaResponder
         /**
          * The stage direction that produced the opening, replayed as the first user turn.
          *
-         * Not cosmetic: a thread where Nina speaks first starts with an assistant message, and a
+         * Not cosmetic: a thread where Mark speaks first starts with an assistant message, and a
          * payload whose history begins with one is not something Gemini accepts — the turn is
-         * dropped in translation, taking with it the only example of Nina being the patient. The
+         * dropped in translation, taking with it the only example of Mark being the patient. The
          * model then reaches for the clinician voice and starts interviewing the student.
          *
          * Sending this first makes the shape identical to `open()`, which never drifted.
@@ -160,14 +181,39 @@ class NinaResponder
     {
         $skill = $conversation->skill;
         /**
-         * Usually she answers in the mode she was spoken to. A skill may override that outright —
+         * Usually he answers in the mode he was spoken to. A skill may override that outright —
          * the sufler hears a consultation aloud and writes back, and mirroring the turn would put
          * its suggestions in the patient's ear.
          */
         $modality = $skill?->reply_modality
             ?: ($skill && $skill->accepts($incoming->modality) ? $incoming->modality : 'text');
 
-        return $this->persist($conversation, $body, $modality, $meta);
+        return $this->persist($conversation, self::plain($body), $modality, $meta);
+    }
+
+    /**
+     * Markdown off a reply that is about to be rendered as plain text.
+     *
+     * The instruction above asks for prose; this makes sure of it. Asking a model not to reach
+     * for bold and bullets works most of the time, and "most of the time" on every single turn
+     * is a screen full of literal asterisks by the end of a consultation.
+     *
+     * Deliberately narrow. Emphasis markers, heading hashes and the dash or star that opens a
+     * line are removed; everything else — numbers, units, the text itself — is left exactly as
+     * it was written. A dose of 2.5 mg must survive this untouched.
+     */
+    private static function plain(string $body): string
+    {
+        // Emphasis: the pair of markers goes, the words between them stay.
+        $text = preg_replace('/\*\*(.+?)\*\*/su', '$1', $body);
+        $text = preg_replace('/(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])/su', '$1', (string) $text);
+        // Headings, and the bullet or dash that opens a line. Numbered lists are left alone:
+        // "1. ..." is how a person writes steps out loud as well.
+        $text = preg_replace('/^\s{0,3}#{1,6}\s*/m', '', (string) $text);
+        $text = preg_replace('/^\s{0,3}[*•]\s+/m', '', (string) $text);
+        $text = preg_replace('/^\s{0,3}-\s+/m', '', (string) $text);
+
+        return trim((string) $text);
     }
 
     /** @param array<string, mixed> $meta */
@@ -192,7 +238,7 @@ class NinaResponder
             'consultant' => "Na osnovu \"{$heard}\" — prvo razmisli o diferencijalnoj, pa o sljedećem koraku.",
             'dictaphone' => "Zapisano: {$heard}",
             'study_buddy' => "Pitanje na osnovu \"{$heard}\": koji je prvi korak u zbrinjavanju?",
-            default => "Primila sam: {$heard}",
+            default => "Primio sam: {$heard}",
         };
     }
 }

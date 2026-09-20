@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Models\NinaSkill;
-use App\Services\NinaResponder;
+use App\Models\MarkSkill;
+use App\Services\MarkResponder;
 use App\Support\ApiResponse;
 use App\Support\PatientVoice;
 use Illuminate\Http\JsonResponse;
@@ -27,18 +27,18 @@ class ConversationController extends Controller
         return ApiResponse::ok($conversations, 'Conversations.', ['count' => $conversations->count()]);
     }
 
-    /** A thread is opened in a skill and stays in it — the skill is what Nina is being asked to be. */
-    public function store(Request $request, NinaResponder $nina): JsonResponse
+    /** A thread is opened in a skill and stays in it — the skill is what Mark is being asked to be. */
+    public function store(Request $request, MarkResponder $mark): JsonResponse
     {
         $data = $request->validate([
-            'skill' => ['required', 'string', 'exists:nina_skills,key'],
+            'skill' => ['required', 'string', 'exists:mark_skills,key'],
             'modality' => ['nullable', 'string', 'in:text,voice'],
             'context' => ['nullable', 'string', 'max:1000'],
             'sex' => ['nullable', 'string', 'in:M,F,any'],
             'title' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $skill = NinaSkill::where('key', $data['skill'])->firstOrFail();
+        $skill = MarkSkill::where('key', $data['skill'])->firstOrFail();
 
         // Chosen here and fixed for the thread's life: a consultation that began spoken stays
         // spoken, and switching mid-thread would leave half its turns unplayable.
@@ -52,7 +52,7 @@ class ConversationController extends Controller
         }
 
         $conversation = Conversation::create([
-            'nina_skill_id' => $skill->id,
+            'mark_skill_id' => $skill->id,
             'modality' => $modality,
             // Resolved once and kept: a patient who sounds like a different person on the second
             // call is not the same patient.
@@ -63,7 +63,7 @@ class ConversationController extends Controller
 
         // Some skills speak first — a patient is sitting there before anyone asks anything.
         // Which ones is configuration on the skill rather than a branch here.
-        if ($opening = $nina->open($conversation)) {
+        if ($opening = $mark->open($conversation)) {
             $conversation->update(['last_message_at' => $opening->sent_at]);
         }
 

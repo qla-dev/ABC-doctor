@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Services\NinaResponder;
+use App\Services\MarkResponder;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,9 +21,9 @@ class MessageController extends Controller
 
     /**
      * One turn in, one turn back. Both are returned together so a client never has to guess when
-     * Nina has answered or poll to find out.
+     * Mark has answered or poll to find out.
      */
-    public function store(Request $request, NinaResponder $nina): JsonResponse
+    public function store(Request $request, MarkResponder $mark): JsonResponse
     {
         $data = $request->validate([
             'conversation_id' => ['required', 'integer', 'exists:conversations,id'],
@@ -52,7 +52,7 @@ class MessageController extends Controller
             'sent_at' => now(),
         ]);
 
-        $reply = $nina->reply($conversation, $sent);
+        $reply = $mark->reply($conversation, $sent);
 
         $conversation->update(['last_message_at' => $reply->sent_at]);
 

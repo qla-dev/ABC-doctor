@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** One thread with Nina, fixed to the skill it was opened in. */
+/** One thread with Mark, fixed to the skill it was opened in. */
 class Conversation extends Model
 {
-    protected $fillable = ['nina_skill_id', 'modality', 'voice', 'context', 'title', 'last_message_at'];
+    protected $fillable = ['mark_skill_id', 'modality', 'voice', 'context', 'title', 'last_message_at'];
 
     protected function casts(): array
     {
@@ -18,7 +18,7 @@ class Conversation extends Model
 
     public function skill(): BelongsTo
     {
-        return $this->belongsTo(NinaSkill::class, 'nina_skill_id');
+        return $this->belongsTo(MarkSkill::class, 'mark_skill_id');
     }
 
     public function messages(): HasMany

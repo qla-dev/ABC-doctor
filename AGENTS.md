@@ -33,10 +33,18 @@ House rule across all qla-dev repos; `qla-dev/backend/AGENTS.md` is the canonica
   with a read-only check. Do not trust `.env` alone — account for `.env.testing`, process env
   and cached config. A missing `.env.testing` is a hard stop for `--env=testing`.
 - Run backend tests only with `DB_CONNECTION=sqlite DB_DATABASE=:memory:` set explicitly.
-- The backend runs on **MySQL** now: `abc_doctor` on the local MariaDB (XAMPP, root, no
-  password). `backend/database/database.sqlite` is still on disk but nothing points at it.
-  Other databases share that server — `hajp`, `mahala`, `mojguru`, `snovi` — so a command
-  that writes is never safe to run blind. Verify the effective database first, every time.
+- The backend now points at a **remote MariaDB**: `tagnetba_abc` on `65.21.224.37:3306`.
+  It is shared hosting, so it is somebody else's server and other accounts sit beside it —
+  a command that writes is never safe to run blind. Verify the effective database first,
+  every time. `backend/database/database.sqlite` is still on disk but nothing points at it,
+  and the old local `abc_doctor` (XAMPP, root, no password) still holds the earlier data.
+- That host defaults to **MyISAM**, which is why `config/database.php` names `InnoDB`
+  outright. Two things break without it: a `varchar(255)` utf8mb4 primary key is 1020 bytes
+  against MyISAM's 1000-byte index limit, so `password_reset_tokens` cannot be created at
+  all; and MyISAM accepts every foreign key in these migrations while enforcing none of them.
+- The five skills ship as data inside the migrations rather than a seeder, so a fresh
+  database is one `php artisan migrate` away from usable. There is nothing to seed, and
+  nothing here should be seeded.
 
 ## What `web/` actually does
 

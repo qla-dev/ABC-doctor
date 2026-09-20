@@ -54,7 +54,7 @@ class OpenAiRealtimeClient
             'input' => [
                 /**
                  * far_field, not near_field. Lena's caller holds the phone to their face; a
-                 * consultation here runs on the loudspeaker by default, so Nina's own voice comes
+                 * consultation here runs on the loudspeaker by default, so Mark's own voice comes
                  * back into the microphone. Reduction runs BEFORE the turn detector, and that
                  * bleed reaching the transcriber as "speech" is exactly when it invents a
                  * YouTube sign-off — "welcome to the channel" — out of nothing anyone said.

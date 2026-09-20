@@ -58,7 +58,13 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
-            'engine' => null,
+            /*
+             * Named rather than left to the server. The shared host this runs on defaults to
+             * MyISAM, which cannot hold an index this schema needs — a varchar(255) utf8mb4 key
+             * is 1020 bytes against its 1000-byte limit — and, worse, accepts every foreign key
+             * in these migrations and silently enforces none of them.
+             */
+            'engine' => env('DB_ENGINE', 'InnoDB'),
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
@@ -78,7 +84,13 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
-            'engine' => null,
+            /*
+             * Named rather than left to the server. The shared host this runs on defaults to
+             * MyISAM, which cannot hold an index this schema needs — a varchar(255) utf8mb4 key
+             * is 1020 bytes against its 1000-byte limit — and, worse, accepts every foreign key
+             * in these migrations and silently enforces none of them.
+             */
+            'engine' => env('DB_ENGINE', 'InnoDB'),
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

@@ -94,15 +94,15 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 ## Phase 6 — backend ⚠️ the messaging protocol only
 
 MySQL (`abc_doctor` on local MariaDB), not the sqlite file the installer left behind.
-Nina — not Lena — is the agent. Four skills, each declaring `supports_text` / `supports_voice`,
+Mark — not Lena — is the agent. Four skills, each declaring `supports_text` / `supports_voice`,
 with `parent_id` waiting for the first sub-skill.
 
 - [x] `{message, data, meta, errors}` envelope on every route
-- [x] `nina_skills`, `conversations`, `messages`; the four skills ship as data in the migration
+- [x] `mark_skills`, `conversations`, `messages`; the four skills ship as data in the migration
       rather than a seeder, so a fresh database is one `migrate` away from usable
 - [x] `POST /api/messages` returns both turns at once; modality is checked server-side against
       the skill's flags, not trusted to the client that drew the picker
-- [~] `NinaResponder` writes a reply of the right shape but **calls no model**. Swapping in a
+- [~] `MarkResponder` writes a reply of the right shape but **calls no model**. Swapping in a
       real call is one method; nothing above that class changes.
 - [ ] Auth. Left out on purpose — Sanctum belongs with the first real user, not the first
       message. Nothing here is safe beyond localhost.
@@ -132,8 +132,8 @@ camera, FlashList, Skia, victory-native, `remend`, assistant-ui, enriched-markdo
 
 ## Next, in the order that matters
 
-1. **A real model call** — the protocol, the schema and both clients are done; `NinaResponder`
-   is the one seam left before anything Nina says is hers.
+1. **A real model call** — the protocol, the schema and both clients are done; `MarkResponder`
+   is the one seam left before anything Mark says is his.
 2. **SQLite for the review log** — MMKV holds prefs and progress now, but the FSRS log wants a
    real table before it grows.
 3. **Custom quiz modal** — the one Phase 4 box still open.

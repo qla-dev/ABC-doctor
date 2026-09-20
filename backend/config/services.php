@@ -15,10 +15,10 @@ return [
     */
 
     /*
-     * The model Nina speaks through. OpenRouter because it is how model calls are made in the
+     * The model Mark speaks through. OpenRouter because it is how model calls are made in the
      * sibling repos, and because one key reaches every model rather than one key per provider.
      *
-     * With no key set, NinaResponder falls back to a canned reply and says so in the message's
+     * With no key set, MarkResponder falls back to a canned reply and says so in the message's
      * meta — the app keeps working locally and the reason is legible instead of a 500.
      */
     'openrouter' => [

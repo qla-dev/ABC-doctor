@@ -1,4 +1,4 @@
-@extends('nina.layout', ['title' => 'Nina — razgovor #'.$conversation->id])
+@extends('mark.layout', ['title' => 'Mark — razgovor #'.$conversation->id])
 
 @section('content')
     <h1>#{{ $conversation->id }} · {{ $conversation->skill?->name }}</h1>

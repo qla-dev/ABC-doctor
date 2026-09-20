@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\NinaTranscription;
+use App\Services\MarkTranscription;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ use Throwable;
  * device is already a file the app would have to open either way, and one encoding is fewer
  * moving parts than a multipart body assembled in React Native.
  */
-class NinaTranscriptionController extends Controller
+class MarkTranscriptionController extends Controller
 {
     /**
      * Roughly two minutes of the m4a expo-audio records. Base64 inflates by a third, and the
@@ -29,7 +29,7 @@ class NinaTranscriptionController extends Controller
      */
     private const MAX_BASE64_LENGTH = 4_000_000;
 
-    public function store(Request $request, NinaTranscription $transcription): JsonResponse
+    public function store(Request $request, MarkTranscription $transcription): JsonResponse
     {
         $data = $request->validate([
             'audio' => ['required', 'string', 'max:'.self::MAX_BASE64_LENGTH],

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Nina' }}</title>
+    <title>{{ $title ?? 'Mark' }}</title>
     <style>
         :root {
             --bg: #0b0b0d; --card: #1c1c1e; --line: #2c2c2e;
@@ -72,9 +72,9 @@
 <body>
 <div class="wrap">
     <nav class="nav">
-        <span class="brand">Nina</span>
-        <a href="{{ route('nina.index') }}" class="{{ request()->routeIs('nina.index', 'nina.show') ? 'on' : '' }}">Razgovori</a>
-        <a href="{{ route('nina.skills') }}" class="{{ request()->routeIs('nina.skill*') ? 'on' : '' }}">Vještine</a>
+        <span class="brand">Mark</span>
+        <a href="{{ route('mark.index') }}" class="{{ request()->routeIs('mark.index', 'mark.show') ? 'on' : '' }}">Razgovori</a>
+        <a href="{{ route('mark.skills') }}" class="{{ request()->routeIs('mark.skill*') ? 'on' : '' }}">Vještine</a>
     </nav>
     @yield('content')
 </div>
