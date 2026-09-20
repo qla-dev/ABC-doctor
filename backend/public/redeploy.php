@@ -16,9 +16,9 @@ declare(strict_types=1);
  * at, is how a deploy becomes an incident. Run `php artisan migrate` yourself, having checked
  * which database answers.
  *
- * One thing is added rather than carried over: the token below. Freightbook's copy answers to
- * anyone who finds the URL, and what it answers with is `git pull` and `composer install` — the
- * two commands you would pick if you wanted to run your own code on somebody's server.
+ * It is also not authenticated, exactly as freightbook's is not. Anyone who finds the URL can
+ * run `git pull` and `composer install` on this account, so the URL is the only thing keeping
+ * them out — worth knowing when choosing where this file lives.
  */
 
 set_time_limit(0);
@@ -32,54 +32,6 @@ putenv('COMPOSER_ALLOW_SUPERUSER=1');
 putenv('COMPOSER_NO_INTERACTION=1');
 
 $environmentFile = $baseDir.DIRECTORY_SEPARATOR.'.env';
-
-/**
- * Reads one key straight out of `.env`.
- *
- * Laravel is not booted here and must not be: half the point of this script is to run when the
- * app cannot, because its dependencies are missing or its config cache is stale.
- */
-$environmentValue = static function (string $key) use ($environmentFile): string {
-    if (! is_file($environmentFile)) {
-        return '';
-    }
-
-    $contents = file_get_contents($environmentFile);
-    if (! is_string($contents)) {
-        return '';
-    }
-
-    if (preg_match('/^'.preg_quote($key, '/').'\s*=\s*(.*)$/m', $contents, $found) !== 1) {
-        return '';
-    }
-
-    return trim(trim(trim($found[1]), '"\''));
-};
-
-/**
- * Anyone who can reach this URL can run the two commands below. On shared hosting the URL is
- * guessable and the directory is somebody else's machine, so a request has to carry the secret
- * from `.env`; a run from a shell is already past every door this guards.
- */
-if (PHP_SAPI !== 'cli') {
-    header('Content-Type: text/plain; charset=utf-8');
-    header('Cache-Control: no-cache');
-    header('X-Accel-Buffering: no');
-
-    $expected = $environmentValue('REDEPLOY_TOKEN');
-    $offered = $_GET['token'] ?? $_SERVER['HTTP_X_REDEPLOY_TOKEN'] ?? '';
-
-    if ($expected === '') {
-        http_response_code(503);
-        exit("REDEPLOY_TOKEN is not set in .env, so this endpoint refuses to run.\n");
-    }
-
-    // hash_equals rather than ===: a token compared byte by byte can be guessed by timing it.
-    if (! is_string($offered) || ! hash_equals($expected, $offered)) {
-        http_response_code(403);
-        exit("Forbidden.\n");
-    }
-}
 
 /**
  * A DB_HOST pasted as a URL is a real mistake people make, and the failure it produces — a
@@ -113,6 +65,12 @@ foreach ([$composerHome, $composerCache] as $directory) {
 putenv('HOME='.$composerHome);
 putenv('COMPOSER_HOME='.$composerHome);
 putenv('COMPOSER_CACHE_DIR='.$composerCache);
+
+if (PHP_SAPI !== 'cli') {
+    header('Content-Type: text/plain; charset=utf-8');
+    header('Cache-Control: no-cache');
+    header('X-Accel-Buffering: no');
+}
 
 while (ob_get_level() > 0) {
     ob_end_flush();
