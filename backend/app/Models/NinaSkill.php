@@ -15,14 +15,14 @@ class NinaSkill extends Model
     protected $fillable = [
         'parent_id', 'key', 'name', 'description', 'system_prompt',
         'supports_text', 'supports_voice', 'opens_conversation',
-        'opening_prompt', 'turn_reminder', 'model', 'position', 'is_active',
+        'opening_prompt', 'turn_reminder', 'voice_style', 'model', 'position', 'is_active',
     ];
 
     /**
      * What Nina is told is the server's business. The catalogue endpoint is public to every
      * client, and a system prompt handed out there is a system prompt anyone can work around.
      */
-    protected $hidden = ['system_prompt', 'opening_prompt', 'turn_reminder'];
+    protected $hidden = ['system_prompt', 'opening_prompt', 'turn_reminder', 'voice_style'];
 
     protected function casts(): array
     {

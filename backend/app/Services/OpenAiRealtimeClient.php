@@ -26,18 +26,33 @@ class OpenAiRealtimeClient
      *
      * @throws \RuntimeException
      */
-    public function mint(?string $instructions = null): array
+    public function mint(?string $instructions = null, ?string $voiceOverride = null): array
     {
         $model = (string) config('services.openai.realtime_model');
-        $voice = (string) config('services.openai.realtime_voice');
+        $voice = $voiceOverride ?: (string) config('services.openai.realtime_voice');
 
         $session = ['type' => 'realtime', 'model' => $model];
 
         if (filled($instructions)) {
             $session['instructions'] = $instructions;
         }
+        $session['audio'] = [
+            /**
+             * Both taken from the Lena session. Noise reduction runs BEFORE the turn detector, so
+             * room noise and the speaker bleeding back are less likely to be handed to the
+             * transcriber as speech — which is exactly when it invents words nobody said.
+             *
+             * Transcribing the caller's own turns is what lets a spoken consultation be read back
+             * afterwards; without it the doctor's half of the call exists only as audio nobody keeps.
+             */
+            'input' => [
+                'noise_reduction' => ['type' => 'near_field'],
+                'transcription' => ['model' => 'whisper-1', 'language' => 'bs'],
+            ],
+        ];
+
         if (filled($voice)) {
-            $session['audio'] = ['output' => ['voice' => $voice]];
+            $session['audio']['output'] = ['voice' => $voice];
         }
 
         $response = Http::withToken((string) config('services.openai.key'))

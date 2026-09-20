@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** One thread with Nina, fixed to the skill it was opened in. */
 class Conversation extends Model
 {
-    protected $fillable = ['nina_skill_id', 'modality', 'context', 'title', 'last_message_at'];
+    protected $fillable = ['nina_skill_id', 'modality', 'voice', 'context', 'title', 'last_message_at'];
 
     protected function casts(): array
     {

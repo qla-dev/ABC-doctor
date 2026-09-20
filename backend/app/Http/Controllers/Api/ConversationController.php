@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\NinaSkill;
 use App\Services\NinaResponder;
 use App\Support\ApiResponse;
+use App\Support\PatientVoice;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,7 @@ class ConversationController extends Controller
             'skill' => ['required', 'string', 'exists:nina_skills,key'],
             'modality' => ['nullable', 'string', 'in:text,voice'],
             'context' => ['nullable', 'string', 'max:1000'],
+            'sex' => ['nullable', 'string', 'in:M,F,any'],
             'title' => ['nullable', 'string', 'max:120'],
         ]);
 
@@ -52,6 +54,9 @@ class ConversationController extends Controller
         $conversation = Conversation::create([
             'nina_skill_id' => $skill->id,
             'modality' => $modality,
+            // Resolved once and kept: a patient who sounds like a different person on the second
+            // call is not the same patient.
+            'voice' => PatientVoice::for($data['sex'] ?? null),
             'context' => $data['context'] ?? null,
             'title' => $data['title'] ?? $skill->name,
         ]);

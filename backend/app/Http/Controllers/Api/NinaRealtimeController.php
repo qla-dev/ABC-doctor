@@ -44,10 +44,13 @@ class NinaRealtimeController extends Controller
             $instructions = trim(implode("\n\n", array_filter([
                 (string) $skill->system_prompt,
                 filled($conversation->context) ? "Za ovaj razgovor vrijedi: {$conversation->context}" : null,
+                // Only the spoken path gets this: hesitation and trailing off read as noise in
+                // writing, and as a person out loud.
+                (string) $skill->voice_style,
                 $skill->opens_conversation ? (string) $skill->opening_prompt : null,
             ])));
 
-            $secret = $openai->mint($instructions);
+            $secret = $openai->mint($instructions, $conversation->voice);
         } catch (\Throwable $e) {
             return ApiResponse::fail('Could not start a voice session.', ['openai' => [$e->getMessage()]], 502);
         }
