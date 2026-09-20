@@ -127,6 +127,28 @@ no extra package beyond `expo-secure-store`. If social login is wanted, add
 fitness instead uses `better-auth` + `@better-auth/expo` + `@better-auth/sso` (1.5.6). Only
 relevant if we move auth off Laravel.
 
+## Waiting on the next native build
+
+`expo-speech-recognition` (~57.1.0) — on-device speech recognition, iOS `SFSpeechRecognizer`
+and Android `SpeechRecognizer`, with `interimResults`. It is a native module, so it cannot be
+added to a running dev build: install it, add `NSSpeechRecognitionUsageDescription` to
+`ios.infoPlist`, and rebuild.
+
+Why it is wanted even though live transcription already works: the composer's live text
+currently comes from OpenAI over a socket (`lib/liveTranscribe.ts`), which costs realtime
+minutes and needs a connection. An on-device engine is free, instant and works offline, which
+makes it the better *preview* — the arrangement freightbook's Lena uses, where the local engine
+types a guess while the accurate transcriber produces the text that is actually sent.
+
+The catch is language: Apple recognises `hr-HR`, not Bosnian, so its guess will be rougher than
+what `gpt-4o-transcribe` returns. It is a preview to be overwritten, not the final text. Check
+`getSupportedLocales()` on the device before committing to it.
+
+Where it would plug in: `lib/voiceNote.ts` already chooses an engine before anything starts
+recording, precisely so a third one can be added without two things reading the same microphone.
+An on-device preview would pair with the *recorded* path — local engine for the live text, the
+file upload for the final — leaving the socket path as it is.
+
 ## Install order
 
 1. `npx expo install` the `expo-*` and Expo-aware packages (Router, glass, camera, sqlite, …)

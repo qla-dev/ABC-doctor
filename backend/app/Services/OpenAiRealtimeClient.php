@@ -129,4 +129,86 @@ class OpenAiRealtimeClient
                 .'/realtime/calls?model='.urlencode($resolved),
         ];
     }
+
+    /**
+     * A key for a session that only listens.
+     *
+     * The difference from `mint` is the whole point of it: no voice, no model answering, nothing
+     * coming back but the words as they are said. It is what puts a transcript in the composer
+     * while somebody is still talking, so a voice message can be read before it is sent.
+     *
+     * Lena does this with the browser's own SpeechRecognition running alongside the recording.
+     * A phone has no such engine, and adding one is a native module and a new build — so the
+     * preview comes from the same transcriber that produces the final text, over a socket the
+     * device opens with this key.
+     *
+     * @return array{value: string, expires_at: int, model: string, url: string}
+     *
+     * @throws \RuntimeException
+     */
+    public function mintTranscription(?string $context = null): array
+    {
+        $model = (string) config('services.openai.live_transcribe_model');
+
+        $session = [
+            'type' => 'transcription',
+            'audio' => [
+                'input' => [
+                    /**
+                     * What the phone can actually produce: expo-audio's stream hands over raw
+                     * PCM, and 24 kHz mono is both what this endpoint wants and the least of it
+                     * worth sending over a mobile connection.
+                     */
+                    'format' => ['type' => 'audio/pcm', 'rate' => 24000],
+                    'noise_reduction' => ['type' => (string) config('services.openai.noise_reduction')],
+                    'transcription' => array_filter([
+                        'model' => $model,
+                        // Same reasoning as the call session: left to detect, it decides Serbian
+                        // and writes the whole thing in Cyrillic.
+                        'language' => (string) config('services.openai.transcribe_language'),
+                        'prompt' => trim(implode(' ', array_filter([
+                            (string) config('services.openai.transcribe_prompt'),
+                            $context,
+                        ]))),
+                    ]),
+                    /**
+                     * Detection stays on, unlike a session that is committed by hand: it is what
+                     * makes each finished sentence land as text while the next one is still being
+                     * said, which is the entire point of a preview.
+                     */
+                    'turn_detection' => ['type' => 'semantic_vad'],
+                ],
+            ],
+        ];
+
+        $response = Http::withToken((string) config('services.openai.key'))
+            ->timeout(20)
+            ->acceptJson()
+            ->post(rtrim((string) config('services.openai.base_url'), '/').'/realtime/client_secrets', [
+                'session' => $session,
+            ]);
+
+        if ($response->failed()) {
+            $reason = $response->json('error.message') ?? $response->body();
+            Log::warning('OpenAI transcription session failed', [
+                'status' => $response->status(),
+                'reason' => $reason,
+            ]);
+
+            throw new \RuntimeException("OpenAI {$response->status()}: {$reason}");
+        }
+
+        return [
+            'value' => (string) $response->json('value'),
+            'expires_at' => (int) $response->json('expires_at'),
+            'model' => (string) ($response->json('session.audio.input.transcription.model') ?? $model),
+            /**
+             * A socket rather than the SDP exchange the call uses: there is no audio coming back
+             * to route, and a phone that is already holding the microphone for its own recorder
+             * cannot hand it to WebRTC as well.
+             */
+            'url' => str_replace(['https://', 'http://'], ['wss://', 'ws://'],
+                rtrim((string) config('services.openai.base_url'), '/')).'/realtime?intent=transcription',
+        ];
+    }
 }

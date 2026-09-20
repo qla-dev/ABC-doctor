@@ -102,4 +102,36 @@ class NinaRealtimeController extends Controller
             'opens_conversation' => $skill->opens_conversation,
         ]);
     }
+
+    /**
+     * A key for a session that only listens, for the words appearing in the composer while a
+     * voice message is still being spoken.
+     *
+     * Unlike `store` this does not need a thread and does not care what the skill is: nothing is
+     * being answered, so there is no persona to load and no modality to refuse. A conversation
+     * id, when there is one, only lends its case to the transcriber's prompt — a patient whose
+     * complaint is already known is a patient whose terms come back spelled correctly.
+     */
+    public function transcription(Request $request, OpenAiRealtimeClient $openai): JsonResponse
+    {
+        $data = $request->validate([
+            'conversation_id' => ['nullable', 'integer', 'exists:conversations,id'],
+        ]);
+
+        if (! $openai->configured()) {
+            return ApiResponse::fail('Voice is not configured.', ['key' => ['OPENAI_API_KEY is not set.']], 503);
+        }
+
+        $context = isset($data['conversation_id'])
+            ? Conversation::find($data['conversation_id'])?->context
+            : null;
+
+        try {
+            $secret = $openai->mintTranscription($context);
+        } catch (\Throwable $e) {
+            return ApiResponse::fail('Could not start a transcription session.', ['openai' => [$e->getMessage()]], 502);
+        }
+
+        return ApiResponse::ok($secret, 'Transcription session ready.');
+    }
 }

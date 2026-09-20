@@ -39,6 +39,13 @@ return [
         'realtime_model' => env('OPENAI_REALTIME_MODEL', 'gpt-realtime-2.1'),
         'realtime_voice' => env('OPENAI_REALTIME_VOICE', 'verse'),
         'transcribe_model' => env('OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-transcribe'),
+        /**
+         * The transcriber behind the live preview, which is a different session type and not
+         * necessarily the same model. Defaults to the one above because that is the one this
+         * account is known to be able to call; 'gpt-live-transcribe' is the newer one OpenAI
+         * recommends for transcription sessions, and this is the line to change for it.
+         */
+        'live_transcribe_model' => env('OPENAI_LIVE_TRANSCRIBE_MODEL', env('OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-transcribe')),
         /** A Latin-script code on purpose: `sr` would come back in Cyrillic. */
         'transcribe_language' => env('OPENAI_TRANSCRIBE_LANGUAGE', 'hr'),
         'transcribe_prompt' => env('OPENAI_TRANSCRIBE_PROMPT',
