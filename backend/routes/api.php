@@ -26,5 +26,6 @@ Route::get('conversations/{conversation}', [ConversationController::class, 'show
 Route::get('conversations/{conversation}/messages', [MessageController::class, 'index']);
 
 Route::post('nina/realtime/session', [NinaRealtimeController::class, 'store']);
+Route::post('nina/realtime/transcript', [NinaRealtimeController::class, 'transcript']);
 
 Route::post('messages', [MessageController::class, 'store']);

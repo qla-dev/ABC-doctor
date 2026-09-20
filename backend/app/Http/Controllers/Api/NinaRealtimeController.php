@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Services\OpenAiRealtimeClient;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,41 @@ use Illuminate\Http\Request;
 
 class NinaRealtimeController extends Controller
 {
+    /**
+     * One side of a spoken turn, saved as an ordinary message.
+     *
+     * A realtime call runs peer to peer between the phone and OpenAI; the server never hears it.
+     * Without this the whole consultation exists only as audio nobody kept, and history shows a
+     * thread with a single opening line and nothing after it.
+     *
+     * Deliberately NOT `POST /messages`: that one answers. These turns have already been spoken
+     * and answered inside the call, so asking the text model to reply again would put a second,
+     * contradictory Nina into the same thread.
+     */
+    public function transcript(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'conversation_id' => ['required', 'integer', 'exists:conversations,id'],
+            'role' => ['required', 'string', 'in:user,assistant'],
+            'body' => ['required', 'string', 'max:4000'],
+        ]);
+
+        $conversation = Conversation::findOrFail($data['conversation_id']);
+
+        $message = Message::create([
+            'conversation_id' => $conversation->id,
+            'role' => $data['role'],
+            'body' => trim($data['body']),
+            'modality' => 'voice',
+            'meta' => ['transcript' => true],
+            'sent_at' => now(),
+        ]);
+
+        $conversation->update(['last_message_at' => $message->sent_at]);
+
+        return ApiResponse::ok($message, 'Transcript saved.', [], 201);
+    }
+
     /**
      * A key for one spoken session, cut for the skill the thread is in.
      *
