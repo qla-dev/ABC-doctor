@@ -121,6 +121,20 @@ class NinaResponder
             $messages[] = ['role' => 'system', 'content' => $systemPrompt];
         }
 
+        /**
+         * The stage direction that produced the opening, replayed as the first user turn.
+         *
+         * Not cosmetic: a thread where Nina speaks first starts with an assistant message, and a
+         * payload whose history begins with one is not something Gemini accepts — the turn is
+         * dropped in translation, taking with it the only example of Nina being the patient. The
+         * model then reaches for the clinician voice and starts interviewing the student.
+         *
+         * Sending this first makes the shape identical to `open()`, which never drifted.
+         */
+        if (filled($conversation->skill?->opening_prompt)) {
+            $messages[] = ['role' => 'user', 'content' => (string) $conversation->skill->opening_prompt];
+        }
+
         $history = $conversation->messages()
             ->whereIn('role', [Message::ROLE_USER, Message::ROLE_ASSISTANT])
             ->get()

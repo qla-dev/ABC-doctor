@@ -22,7 +22,7 @@ class OpenAiRealtimeClient
     }
 
     /**
-     * @return array{value: string, expires_at: int, model: string, voice: string}
+     * @return array{value: string, expires_at: int, model: string, voice: string, call_url: string}
      *
      * @throws \RuntimeException
      */
@@ -54,11 +54,20 @@ class OpenAiRealtimeClient
             throw new \RuntimeException("OpenAI {$response->status()}: {$reason}");
         }
 
+        $resolved = (string) ($response->json('session.model') ?? $model);
+
         return [
             'value' => (string) $response->json('value'),
             'expires_at' => (int) $response->json('expires_at'),
-            'model' => (string) ($response->json('session.model') ?? $model),
+            'model' => $resolved,
             'voice' => $voice,
+            /**
+             * Where the client posts its SDP offer. Handed down rather than built on the device:
+             * the beta path answers "The Realtime Beta API is no longer supported — use
+             * /v1/realtime/calls", and when it moves again this is the one line that changes.
+             */
+            'call_url' => rtrim((string) config('services.openai.base_url'), '/')
+                .'/realtime/calls?model='.urlencode($resolved),
         ];
     }
 }
