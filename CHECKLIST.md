@@ -10,7 +10,9 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 ## Locked decisions
 
 - **Primary blue: `#007AFF` light / `#0A84FF` dark** — putni-nalozi's iOS system blue.
-- **Dark is AMOLED** (`#000000`), default on launch. Three modes (`system`/`light`/`dark`).
+- **Dark is AMOLED** (`#000000`). Three modes (`system`/`light`/`dark`), defaulting to `system`
+  as fitness's `themeService` does — the OS dark appearance resolves to the same palette as
+  picking Dark by hand, so there is one dark appearance, not two.
 - **Expo Router.** Native tabs where the glass APIs exist and the user leaves the toggle on;
   the fallback tab bar everywhere else — Android, iOS before 26, and the toggle turned off.
 - **Auth: Laravel Sanctum**, same as freightbook. No better-auth.
