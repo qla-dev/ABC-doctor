@@ -14,7 +14,7 @@ class NinaSkill extends Model
 {
     protected $fillable = [
         'parent_id', 'key', 'name', 'description', 'system_prompt',
-        'supports_text', 'supports_voice', 'opens_conversation',
+        'supports_text', 'supports_voice', 'reply_modality', 'opens_conversation',
         'opening_prompt', 'turn_reminder', 'voice_style', 'model', 'position', 'is_active',
     ];
 

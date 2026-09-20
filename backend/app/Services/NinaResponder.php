@@ -159,8 +159,13 @@ class NinaResponder
     private function write(Conversation $conversation, string $body, Message $incoming, array $meta): Message
     {
         $skill = $conversation->skill;
-        // She answers in the mode she was spoken to, where the skill allows it.
-        $modality = $skill && $skill->accepts($incoming->modality) ? $incoming->modality : 'text';
+        /**
+         * Usually she answers in the mode she was spoken to. A skill may override that outright —
+         * the sufler hears a consultation aloud and writes back, and mirroring the turn would put
+         * its suggestions in the patient's ear.
+         */
+        $modality = $skill?->reply_modality
+            ?: ($skill && $skill->accepts($incoming->modality) ? $incoming->modality : 'text');
 
         return $this->persist($conversation, $body, $modality, $meta);
     }

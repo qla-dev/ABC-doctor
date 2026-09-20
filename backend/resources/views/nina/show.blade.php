@@ -1,7 +1,6 @@
 @extends('nina.layout', ['title' => 'Nina — razgovor #'.$conversation->id])
 
 @section('content')
-    <div class="sub"><a href="{{ route('nina.index') }}">← svi razgovori</a></div>
     <h1>#{{ $conversation->id }} · {{ $conversation->skill?->name }}</h1>
     <div class="sub">
         {{ $conversation->modality }}

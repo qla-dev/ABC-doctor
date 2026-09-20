@@ -41,11 +41,41 @@
         .turn.user { justify-content: flex-end; }
         .bubble { max-width: 76%; padding: 10px 14px; border-radius: 16px; background: var(--card); }
         .turn.user .bubble { background: var(--blue); }
+        .field { display: block; margin-bottom: 14px; }
+        .fieldLabel { display: block; color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+        input, textarea {
+            width: 100%; background: var(--card); color: var(--text);
+            border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+            font: inherit; resize: vertical;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--blue); }
+        .check { color: var(--text); font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+        .save {
+            background: var(--blue); color: #fff; border: 0; border-radius: 12px;
+            padding: 11px 22px; font: inherit; font-weight: 700; cursor: pointer;
+        }
+        /* One bar on every page, so no page has to grow its own way back. */
+        .nav {
+            display: flex; align-items: center; gap: 4px; margin-bottom: 22px;
+            border-bottom: 1px solid var(--line); padding-bottom: 12px;
+        }
+        .nav .brand { font-weight: 700; margin-right: 12px; }
+        .nav a {
+            padding: 7px 13px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+            color: var(--muted);
+        }
+        .nav a:hover { color: var(--text); text-decoration: none; }
+        .nav a.on { background: var(--card); color: var(--text); }
         .empty { color: var(--muted); padding: 40px 0; text-align: center; }
     </style>
 </head>
 <body>
 <div class="wrap">
+    <nav class="nav">
+        <span class="brand">Nina</span>
+        <a href="{{ route('nina.index') }}" class="{{ request()->routeIs('nina.index', 'nina.show') ? 'on' : '' }}">Razgovori</a>
+        <a href="{{ route('nina.skills') }}" class="{{ request()->routeIs('nina.skill*') ? 'on' : '' }}">Vještine</a>
+    </nav>
     @yield('content')
 </div>
 </body>
