@@ -91,11 +91,22 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 - [ ] **Offline-first SQLite** — `expo-sqlite` installed, imported nowhere
 - [ ] **Streaming tutor** — `remend`, `assistant-ui` and `enriched-markdown` all unused
 
-## Phase 6 — backend ❌ nothing
+## Phase 6 — backend ⚠️ the messaging protocol only
 
-`backend/` is the blank Laravel 12 skeleton: 3 PHP files, no `agents/` directory.
+MySQL (`abc_doctor` on local MariaDB), not the sqlite file the installer left behind.
+Nina — not Lena — is the agent. Four skills, each declaring `supports_text` / `supports_voice`,
+with `parent_id` waiting for the first sub-skill.
 
-- [ ] Sanctum auth, `CrudController` base, `{message, data, meta, errors}` envelope
+- [x] `{message, data, meta, errors}` envelope on every route
+- [x] `nina_skills`, `conversations`, `messages`; the four skills ship as data in the migration
+      rather than a seeder, so a fresh database is one `migrate` away from usable
+- [x] `POST /api/messages` returns both turns at once; modality is checked server-side against
+      the skill's flags, not trusted to the client that drew the picker
+- [~] `NinaResponder` writes a reply of the right shape but **calls no model**. Swapping in a
+      real call is one method; nothing above that class changes.
+- [ ] Auth. Left out on purpose — Sanctum belongs with the first real user, not the first
+      message. Nothing here is safe beyond localhost.
+- [ ] `CrudController` base
 - [ ] Models + migrations: topics, quizzes, flashcards, cases, conversations, messages, ai_call_logs
 - [ ] Lena architecture: `agents/<name>/` tree, `LenaSkillCatalog`, `LenaModeInstructions::split`,
       `LenaSkillSelector`, `LenaSkillUsage`, `LenaSkillResources`, `AiCallLogger`
@@ -121,7 +132,8 @@ camera, FlashList, Skia, victory-native, `remend`, assistant-ui, enriched-markdo
 
 ## Next, in the order that matters
 
-1. **Backend** — nothing above the UI layer is real until Lena exists.
+1. **A real model call** — the protocol, the schema and both clients are done; `NinaResponder`
+   is the one seam left before anything Nina says is hers.
 2. **SQLite for the review log** — MMKV holds prefs and progress now, but the FSRS log wants a
    real table before it grows.
 3. **Custom quiz modal** — the one Phase 4 box still open.

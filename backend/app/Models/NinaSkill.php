@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * One thing Nina can be asked to be. Sub-skills nest through `parent_id`, the way Lena's do,
+ * though nothing creates one yet.
+ */
+class NinaSkill extends Model
+{
+    protected $fillable = [
+        'parent_id', 'key', 'name', 'description',
+        'supports_text', 'supports_voice', 'position', 'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'supports_text' => 'boolean',
+            'supports_voice' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('position');
+    }
+
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    /** Whether this skill will take a turn spoken that way. */
+    public function accepts(string $modality): bool
+    {
+        return match ($modality) {
+            'text' => $this->supports_text,
+            'voice' => $this->supports_voice,
+            default => false,
+        };
+    }
+}

@@ -33,9 +33,10 @@ House rule across all qla-dev repos; `qla-dev/backend/AGENTS.md` is the canonica
   with a read-only check. Do not trust `.env` alone — account for `.env.testing`, process env
   and cached config. A missing `.env.testing` is a hard stop for `--env=testing`.
 - Run backend tests only with `DB_CONNECTION=sqlite DB_DATABASE=:memory:` set explicitly.
-- `backend/database/database.sqlite` here is a fresh local file created by the installer. It
-  holds only the default users/cache/jobs tables. It is still not a licence to run destructive
-  commands blind — verify first.
+- The backend runs on **MySQL** now: `abc_doctor` on the local MariaDB (XAMPP, root, no
+  password). `backend/database/database.sqlite` is still on disk but nothing points at it.
+  Other databases share that server — `hajp`, `mahala`, `mojguru`, `snovi` — so a command
+  that writes is never safe to run blind. Verify the effective database first, every time.
 
 ## What `web/` actually does
 
