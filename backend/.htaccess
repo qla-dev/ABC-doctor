@@ -1,0 +1,22 @@
+# Everything into public/.
+#
+# Laravel expects the document root to BE public/, and cPanel gives you one root for the whole
+# account with the repository sitting inside it. Without this, a request for /api/health looks
+# for a file called api/health next to .env — and worse, .env itself is one URL away from being
+# readable. This moves the whole site one directory down before Apache looks at anything.
+#
+# Taken from freightbook's backend, which sits on the same kind of hosting for the same reason.
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # A path that is already inside public/ is left alone. Without this the rule below rewrites
+    # its own output — public/public/public/… until Apache gives up with a 500.
+    RewriteRule ^public(?:/|$) - [L]
+
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
