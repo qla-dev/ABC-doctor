@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class NinaSkill extends Model
 {
     protected $fillable = [
-        'parent_id', 'key', 'name', 'description', 'system_prompt',
+        'parent_id', 'key', 'name', 'description', 'intro_texts', 'system_prompt',
         'supports_text', 'supports_voice', 'reply_modality', 'opens_conversation',
         'opening_prompt', 'turn_reminder', 'voice_style', 'model', 'position', 'is_active',
     ];
@@ -30,6 +30,7 @@ class NinaSkill extends Model
             'supports_text' => 'boolean',
             'supports_voice' => 'boolean',
             'opens_conversation' => 'boolean',
+            'intro_texts' => 'array',
             'is_active' => 'boolean',
         ];
     }
