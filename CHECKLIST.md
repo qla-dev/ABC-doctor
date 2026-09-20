@@ -4,14 +4,15 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 
 **Phases 1-4 are complete** bar the custom quiz modal. Phase 5 and the backend remain.
 
-**Done:** foundation, navigation, all screens, native config, EAS builds.
-**Not done:** persistence, the backend, and five of the six upgrades.
+**Done:** foundation, navigation, all screens, persistence, native config, EAS builds.
+**Not done:** the backend, and five of the six upgrades.
 
 ## Locked decisions
 
 - **Primary blue: `#007AFF` light / `#0A84FF` dark** — putni-nalozi's iOS system blue.
 - **Dark is AMOLED** (`#000000`), default on launch. Three modes (`system`/`light`/`dark`).
-- **Expo Router**, native tabs on iOS, classic tabs on Android.
+- **Expo Router.** Native tabs where the glass APIs exist and the user leaves the toggle on;
+  the fallback tab bar everywhere else — Android, iOS before 26, and the toggle turned off.
 - **Auth: Laravel Sanctum**, same as freightbook. No better-auth.
 - **Languages: `bs`, `en`, `de`**, English canonical.
 - **Bundle id `abc.qla.dev`**, matching `radni.qla.dev` and `freightbook.qla.dev`.
@@ -44,20 +45,27 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 ## Phase 3 — navigation shell ✅
 
 - [x] `app/_layout.tsx` — ThemeProvider, LanguageProvider, QueryClientProvider
-- [x] `app/(tabs)/_layout.tsx` — `NativeTabs` (iOS) / `Tabs` (Android)
+- [x] `app/(tabs)/_layout.tsx` — `NativeTabs` / `Tabs`, chosen by `useNativeIOSTabsActive()`
 - [x] Five tabs: Home, Handbook, Quiz, Simulator, AI Doctor
 - [x] SF Symbol pairs per tab, lucide on Android
 - [x] `blurEffect` systemMaterial, `tintColor` blue
 - [x] `role="search"` on Handbook
+- [x] Per-tab native stacks (`components/navigation/TabStack.tsx`) — a stack, not a tab, is what
+      can own a header; `(home)` is a group so its index stays at `/`
+- [x] Three chrome modes kept in step — glass native, iOS fallback, Android — switched on the
+      device and the preference (`lib/nativeTabBarPreference.ts`), never on `Platform.OS`
 - [x] `headerBackButtonDisplayMode: 'minimal'` — chevron only, no route-group label
 - [x] Pushed routes: `/flashcards`, `/triage`, `/progress`, `/topic/[id]`, `/quiz/player`
 - [x] Root-level surfaces outside the tabs: `/chat`, `/voice`, `/simulation`
-- [x] `Stack.Toolbar.Button` settings icon on iOS, `headerRight` on Android
+- [x] Header buttons are real bar-button items — `unstable_headerLeftItems`/`RightItems` through
+      `hooks/useScreenHeader.ts`; `FallbackTabHeader` draws the bar where the system draws none
 - [x] AuthProvider — Sanctum token in SecureStore, not MMKV
 
 ## Phase 4 — screens ✅
 
 - [x] Home, Handbook, topic detail, Quiz, quiz player, Flashcards, Triage, AI Doctor, Progress
+- [x] Home carries no large title: the greeting is the screen's heading, and `ABC Doctor` enters
+      the bar on scroll via `nativeTitle` and a threshold, as fitness's SettingsScreen does
 - [x] Patient simulator rebuilt as setup + consultation (see Phase 5)
 - [x] Seed data ported as typed fixtures (1871 lines)
 - [x] **Storage** — MMKV holds progress, bookmarks, quiz history, notes, the FSRS review log
@@ -105,24 +113,30 @@ Status as of 2026-09-20. Boxes reflect what is on disk, not what was intended.
 
 ## The blunt measure
 
-Of the major packages installed, **three are imported anywhere**: `ts-fsrs`, React Query and
-the Expo runtime set. `zustand`, `zod`, MMKV, SQLite, notifications, camera, FlashList, Skia,
-victory-native, `remend`, assistant-ui, enriched-markdown, secure-store and bottom-sheet are
-installed, documented, and unused.
+Imported somewhere: `ts-fsrs`, React Query, MMKV, `zustand`, secure-store, bottom-sheet and the
+Expo runtime set. Still installed, documented and **unused**: `zod`, SQLite, notifications,
+camera, FlashList, Skia, victory-native, `remend`, assistant-ui, enriched-markdown.
 
 ## Next, in the order that matters
 
-1. **Persistence** — the app currently forgets everything. MMKV for prefs, SQLite for the
-   review log. Without it FSRS is theatre.
-2. **Backend** — nothing above the UI layer is real until Lena exists.
-3. **Settings screen** — needs `AppField`; without it the light theme and the bs/de catalogs
-   cannot be reached by tapping.
-4. Remaining components, then the untouched upgrades.
+1. **Backend** — nothing above the UI layer is real until Lena exists.
+2. **SQLite for the review log** — MMKV holds prefs and progress now, but the FSRS log wants a
+   real table before it grows.
+3. **Custom quiz modal** — the one Phase 4 box still open.
+4. The untouched upgrades: voice, camera → flashcards, streaming tutor.
 
 ## Risks
 
 - `NativeTabs` is imported from `expo-router/unstable-native-tabs` — the path may move.
-- `Stack.Toolbar.Button` takes only SF Symbols or images, never a component.
+- Native header items take only SF Symbols or images, never a component. `Stack.Toolbar` is not
+  used at all — the items go on through `unstable_headerLeftItems`/`RightItems`.
+- **A large title inside a tab-based stack needs `collapsable={false}`** on every wrapper between
+  the screen and its scroll view. react-native-screens links the two by walking `subviews[0]`
+  (`RNSScrollViewFinder`), so a wrapper Fabric is free to flatten breaks the chain — and a bar with
+  no link gets no scroll updates, leaving the title pinned and the bar unpainted. expo/expo#40717.
+- `expo-router/unstable-native-tabs` exposes no tab-bar height hook, unlike
+  `react-native-bottom-tabs`' `useBottomTabBarHeight` that fitness uses. Content pinned above the
+  bar goes by `insets.bottom`, which `UITabBarController` already grows by its bar's height.
 - The widget's Swift has never been compiled. If it fails, drop `@bacons/apple-targets` from
   `plugins` and rebuild.
 - TypeScript is pinned to 5.9.3 against Expo's expected 6.0.3, with `expo.install.exclude` set.
