@@ -42,13 +42,13 @@ class OpenRouterClient
         foreach ($models as $model) {
             try {
                 return $this->call($model, $messages);
-            } catch (RuntimeException $e) {
+            } catch (\RuntimeException $e) {
                 // A dead slug or a rate limit on the primary should cost a retry, not the turn.
                 $last = $e;
             }
         }
 
-        throw $last ?? new RuntimeException('No OpenRouter model configured.');
+        throw $last ?? new \RuntimeException('No OpenRouter model configured.');
     }
 
     /**

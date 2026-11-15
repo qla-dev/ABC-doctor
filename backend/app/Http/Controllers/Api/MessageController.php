@@ -32,6 +32,7 @@ class MessageController extends Controller
         ]);
 
         $conversation = Conversation::with('skill')->findOrFail($data['conversation_id']);
+        abort_if($conversation->attempt && $conversation->attempt->status !== 'active',409,'This exercise has ended.');
         // The thread's mode is the default; a request may still name one explicitly.
         $modality = $data['modality'] ?? $conversation->modality;
 

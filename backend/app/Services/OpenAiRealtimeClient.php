@@ -26,12 +26,13 @@ class OpenAiRealtimeClient
      *
      * @throws \RuntimeException
      */
-    public function mint(?string $instructions = null, ?string $voiceOverride = null, ?string $context = null, bool $silent = false): array
+    public function mint(?string $instructions = null, ?string $voiceOverride = null, ?string $context = null, bool $silent = false, array $tools = []): array
     {
         $model = (string) config('services.openai.realtime_model');
         $voice = $voiceOverride ?: (string) config('services.openai.realtime_voice');
 
         $session = ['type' => 'realtime', 'model' => $model];
+        if ($tools) $session['tools'] = $tools;
 
         if ($silent) {
             // Without this the model answers out loud by default, and a sufler that speaks is

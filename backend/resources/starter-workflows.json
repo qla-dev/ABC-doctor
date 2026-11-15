@@ -1,0 +1,251 @@
+[
+  {
+    "starter_key": "er-assessment",
+    "name": "Initial ER assessment",
+    "purpose": "Practice a focused first encounter, identify urgent problems and explain the next step.",
+    "brief": "You are the ER doctor seeing a newly arrived adult. Take a focused history, describe examinations and investigations aloud, and explain your assessment and next steps.",
+    "stages": [
+      {
+        "name": "Introduction"
+      },
+      {
+        "name": "Focused assessment"
+      },
+      {
+        "name": "Assessment and next steps"
+      }
+    ],
+    "criteria": [
+      {
+        "text": "Introduce yourself, confirm identity and establish the main concern."
+      },
+      {
+        "text": "Explore relevant symptoms, history, medicines and allergies using understandable questions."
+      },
+      {
+        "text": "Assess urgency and select relevant examination or investigation rather than assuming a diagnosis."
+      },
+      {
+        "text": "Explain a reasoned assessment and appropriate next steps; acknowledge uncertainty."
+      }
+    ],
+    "advanced": "Urgent escalation may occur before completing the history. Do not penalize this ordering. Finish at the disposition decision; do not continue into an inpatient handover.",
+    "cases": [
+      {
+        "starter_key": "er-abdominal",
+        "name": "Abdominal pain — appendicitis",
+        "story": "Amina Hadzic, 26, has pain that started near her navel 14 hours ago and moved to the right lower abdomen. Worried and cooperative. No regular medicines or known drug allergies.",
+        "visible": "Amina, 26, is seated holding her abdomen. She says: My stomach has been hurting since last night.",
+        "discover": "When asked: pain preceded vomiting, poor appetite, movement worsens pain, no urinary symptoms. Last period two weeks ago; pregnancy is possible. Examination: temperature 38.1 C, pulse 102, BP 118/74, focal right lower abdominal tenderness and guarding. Requested pregnancy test is negative; WBC 14.8 x10^9/L; ultrasound shows an enlarged noncompressible appendix.",
+        "explanation": "Acute appendicitis is the authored explanation. Accept a working diagnosis with a reasonable differential before tests. Do not demand diagnostic certainty before escalation.",
+        "criteria": [
+          {
+            "text": "Explore onset, migration and associated symptoms."
+          },
+          {
+            "text": "Consider pregnancy-related causes and ask relevant reproductive history respectfully."
+          },
+          {
+            "text": "Recognize a possible acute surgical abdomen and arrange appropriate urgent assessment."
+          }
+        ],
+        "references": "https://www.nhs.uk/conditions/appendicitis/\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "er-dental",
+        "name": "Dental pain — localized abscess",
+        "story": "Marko Petrovic, 34, has worsening lower right molar pain for three days and localized gum swelling. No regular medicines or allergies. Worried about the cost of dental care.",
+        "visible": "Marko has a mildly swollen right cheek and says his tooth hurts. He is alert, speaking normally and breathing comfortably.",
+        "discover": "When asked: pain on chewing, bad taste; no difficulty breathing or swallowing, no drooling, no neck swelling. Examination: localized gum swelling beside a decayed lower molar, mouth opens normally, temperature 37.4 C, pulse 84, BP 124/78.",
+        "explanation": "Localized dental abscess requiring urgent dental assessment. Airway/deep-space red flags are absent in this case. Do not invent new airway compromise.",
+        "criteria": [
+          {
+            "text": "Ask about swallowing, breathing, spreading swelling and mouth opening."
+          },
+          {
+            "text": "Identify need for urgent definitive dental care and explain escalation signs."
+          }
+        ],
+        "references": "https://www.nhs.uk/conditions/dental-abscess/\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "er-chest",
+        "name": "Chest discomfort — suspected acute coronary syndrome",
+        "story": "Emir Kovac, 58, has central heavy chest pressure for 45 minutes with nausea and sweating. Hypertension and smoking history. Takes amlodipine. No known allergies.",
+        "visible": "Emir, 58, looks pale and sweaty and reports pressure in his chest.",
+        "discover": "Asked details: pain radiates to left arm, began at rest and persists. Examination: pulse 104, BP 152/90, respirations 22, oxygen saturation 95% on air. Requested ECG shows acute anterior ST elevation. Troponin is pending; do not invent a value.",
+        "explanation": "Suspected acute coronary syndrome with ECG evidence requiring emergency escalation. The task assesses recognition and communication rather than memorized drug doses.",
+        "criteria": [
+          {
+            "text": "Recognize urgency and obtain an ECG without delaying escalation."
+          },
+          {
+            "text": "Communicate concern and arrange emergency specialist management without waiting for pending troponin."
+          }
+        ],
+        "references": "https://www.nice.org.uk/guidance/cg95/chapter/recommendations\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      }
+    ]
+  },
+  {
+    "starter_key": "medication-encounter",
+    "name": "Medication encounter",
+    "purpose": "Practice medication safety checks, shared explanation and confirming understanding.",
+    "brief": "You are discussing a medication plan with an adult patient. Speak your checks and decisions aloud. Explain the agreed plan and confirm understanding; this exercise does not assess physical administration.",
+    "stages": [
+      {
+        "name": "Safety checks"
+      },
+      {
+        "name": "Agree a plan"
+      },
+      {
+        "name": "Confirm understanding"
+      }
+    ],
+    "criteria": [
+      {
+        "text": "Confirm identity, indication, current medicines and allergies."
+      },
+      {
+        "text": "Check patient-specific contraindications and clarify uncertainty before committing to treatment."
+      },
+      {
+        "text": "Explain purpose, use and relevant precautions in everyday language."
+      },
+      {
+        "text": "Invite questions and check understanding using the patient’s own words."
+      }
+    ],
+    "advanced": "Safety checks precede a final prescribing or administration decision. Withholding or clarifying an unsafe prescription is a valid route. Do not require a specific brand or dose unless explicitly supplied by the case.",
+    "cases": [
+      {
+        "starter_key": "med-pain",
+        "name": "New analgesia discussion",
+        "story": "Lejla Maric, 30, has an assessed uncomplicated ankle sprain. She wants pain relief. No liver or kidney disease, no pregnancy, no allergies, no regular medication.",
+        "visible": "Lejla has already been assessed for an ankle sprain and is ready to discuss pain relief.",
+        "discover": "If asked about self-treatment: she took an over-the-counter cold remedy this morning; the package lists paracetamol. She does not know the quantity and can bring the package.",
+        "explanation": "Medication counseling with a duplicate-ingredient risk. Resolve uncertainty about the earlier product before giving a final dosing schedule.",
+        "criteria": [
+          {
+            "text": "Ask about nonprescription products and identify overlapping ingredients."
+          },
+          {
+            "text": "Clarify dose/timing already taken instead of guessing."
+          }
+        ],
+        "references": "https://www.nice.org.uk/guidance/ng5/chapter/recommendations\nhttps://www.nice.org.uk/guidance/cg183/chapter/Recommendations\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "med-allergy",
+        "name": "Antibiotic prescription and allergy history",
+        "story": "Adnan Basic, 42, has an antibiotic prescription from another clinician and wants to discuss taking it. The prescription is amoxicillin.",
+        "visible": "Adnan holds an amoxicillin prescription and says: I think I reacted to an antibiotic years ago.",
+        "discover": "If asked: within minutes of penicillin he developed lip swelling, wheeze and required emergency treatment. He has not taken the new prescription. The original indication is not documented in the available record.",
+        "explanation": "A history concerning for immediate penicillin allergy. Clarify and document the reaction; contact the prescriber to review indication and a safe alternative. Do not assume a specific replacement antibiotic.",
+        "criteria": [
+          {
+            "text": "Clarify reaction features and timing."
+          },
+          {
+            "text": "Avoid recommending the implicated medicine; arrange review and communicate the allergy clearly."
+          }
+        ],
+        "references": "https://www.nice.org.uk/guidance/ng5/chapter/recommendations\nhttps://www.nice.org.uk/guidance/cg183/chapter/Recommendations\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "med-confusion",
+        "name": "Duplicate prescriptions after discharge",
+        "story": "Jelena Simic, 70, recently left hospital. She is unsure which blood-pressure tablets to take. No acute symptoms.",
+        "visible": "Jelena brings old and new medication lists and says she is afraid of taking the wrong tablets.",
+        "discover": "The old list says amlodipine 5 mg once daily; the discharge list says amlodipine 10 mg once daily. She has been taking both tablets together for two days. BP if measured 110/68, pulse 76, no dizziness or syncope. The rationale for the change is not in the supplied paperwork.",
+        "explanation": "Medication reconciliation problem: duplicate dosing after a change. Establish actual use and confirm the intended plan with the responsible prescriber; do not fabricate the missing rationale.",
+        "criteria": [
+          {
+            "text": "Compare actual use with both lists and identify duplicate dosing."
+          },
+          {
+            "text": "Arrange clarification and provide one clear reconciled plan once confirmed."
+          }
+        ],
+        "references": "https://www.nice.org.uk/guidance/ng5/chapter/recommendations\nhttps://www.nice.org.uk/guidance/cg183/chapter/Recommendations\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      }
+    ]
+  },
+  {
+    "starter_key": "inpatient-handover",
+    "name": "ER-to-inpatient handover",
+    "purpose": "Practice a clear transfer of information and responsibility to a receiving clinician.",
+    "brief": "You are the ER doctor handing over an already assessed patient. Use the supplied briefing, communicate uncertainty and pending tasks, and confirm who will take responsibility. The AI is the receiving clinician.",
+    "stages": [
+      {
+        "name": "Identify and summarize"
+      },
+      {
+        "name": "Discuss risks and tasks"
+      },
+      {
+        "name": "Confirm acceptance"
+      }
+    ],
+    "criteria": [
+      {
+        "text": "Identify yourself, the patient and the reason for admission."
+      },
+      {
+        "text": "Communicate relevant background, assessment, current condition and treatment response."
+      },
+      {
+        "text": "Identify outstanding results, risks and specific next actions with an owner."
+      },
+      {
+        "text": "Invite questions and confirm acceptance and transfer of responsibility."
+      }
+    ],
+    "advanced": "Use any coherent structured handover; do not require a particular mnemonic. Receiver asks natural clarifying questions about omissions but does not coach or manufacture refusals. Admission is already indicated; no need to repeat the whole diagnostic encounter.",
+    "cases": [
+      {
+        "starter_key": "handover-abdominal",
+        "name": "Surgical admission",
+        "story": "Play the receiving clinician, Dr. Selma. Be attentive and ask concise relevant clarifying questions. Do not act as the patient.",
+        "visible": "Amina Hadzic, 26: suspected appendicitis, localized right lower abdominal tenderness. Pulse 98, BP 118/74, temperature 38.1 C. Pregnancy test negative. Analgesia given with partial relief; IV access present; awaiting surgical review. Ultrasound report pending. No known allergies.",
+        "discover": "All essential clinical information is already supplied in the briefing. Unprovided results remain pending or unknown. Receiver can accept care once responsibilities are clear.",
+        "explanation": "This is a communication and transfer-of-responsibility exercise, not a new diagnostic assessment.",
+        "criteria": [
+          {
+            "text": "State suspected rather than confirmed diagnosis, identify pending imaging and confirm surgical review ownership."
+          }
+        ],
+        "references": "https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/handoff.html\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "handover-respiratory",
+        "name": "Respiratory admission",
+        "story": "Play the receiving clinician, Dr. Selma. Be attentive and ask concise relevant clarifying questions. Do not act as the patient.",
+        "visible": "Emir Kovac, 68: pneumonia on chest radiograph with a new oxygen requirement. Initially saturation 89% on air, now 94% on 2 L/min oxygen; pulse 100, BP 126/72, respirations 24. Initial antibiotics given according to local protocol; cultures pending. No known allergies. Admission already agreed in principle.",
+        "discover": "All essential clinical information is already supplied in the briefing. Unprovided results remain pending or unknown. Receiver can accept care once responsibilities are clear.",
+        "explanation": "This is a communication and transfer-of-responsibility exercise, not a new diagnostic assessment.",
+        "criteria": [
+          {
+            "text": "Communicate oxygen requirement and response, current observations and ownership of pending cultures and reassessment."
+          }
+        ],
+        "references": "https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/handoff.html\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      },
+      {
+        "starter_key": "handover-fainting",
+        "name": "Admission after syncope",
+        "story": "Play the receiving clinician, Dr. Selma. Be attentive and ask concise relevant clarifying questions. Do not act as the patient.",
+        "visible": "Jelena Simic, 74: brief witnessed loss of consciousness, now alert and neurologically intact. Pulse 62, BP 132/74. Initial ECG has conduction abnormalities requiring further review; cause of syncope remains uncertain. No injury. Monitoring started; medication review and senior ECG review pending. No known allergies.",
+        "discover": "All essential clinical information is already supplied in the briefing. Unprovided results remain pending or unknown. Receiver can accept care once responsibilities are clear.",
+        "explanation": "This is a communication and transfer-of-responsibility exercise, not a new diagnostic assessment.",
+        "criteria": [
+          {
+            "text": "Preserve diagnostic uncertainty, communicate monitoring and pending review, and agree ownership of deterioration or recurrent symptoms."
+          }
+        ],
+        "references": "https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/handoff.html\nFictional training case. Adapt to local protocols before publication. Example debrief: cite what the doctor actually said, explain any missed safety information, and suggest a focused improvement; never award a predetermined score."
+      }
+    ]
+  }
+]

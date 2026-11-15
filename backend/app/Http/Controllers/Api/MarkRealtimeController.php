@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Services\MarkInstructions;
 use App\Services\OpenAiRealtimeClient;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -29,20 +30,36 @@ class MarkRealtimeController extends Controller
             'conversation_id' => ['required', 'integer', 'exists:conversations,id'],
             'role' => ['required', 'string', 'in:user,assistant'],
             'body' => ['required', 'string', 'max:4000'],
+            'item_id' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
         ]);
 
         $conversation = Conversation::findOrFail($data['conversation_id']);
 
-        $message = Message::create([
+        $attributes = [
             'conversation_id' => $conversation->id,
             'role' => $data['role'],
             'body' => trim($data['body']),
             'modality' => 'voice',
             'meta' => ['transcript' => true],
             'sent_at' => now(),
-        ]);
+        ];
+        // Retrying an upload after a dropped connection must not duplicate spoken turns.
+        $message = filled($data['item_id'] ?? null)
+            ? Message::firstOrCreate([
+                'conversation_id' => $conversation->id,
+                'realtime_item_id' => $data['item_id'],
+            ], $attributes)
+            : Message::create($attributes);
 
-        $conversation->update(['last_message_at' => $message->sent_at]);
+        if ($conversation->last_message_at === null || $message->sent_at->greaterThan($conversation->last_message_at)) {
+            $conversation->update(['last_message_at' => $message->sent_at]);
+        }
+
+        if ($message->wasRecentlyCreated && ($attempt = $conversation->attempt) && $attempt->status !== 'active') {
+            $attempt->increment('evaluation_revision');
+            $attempt->update(['status'=>'evaluating','report'=>null]);
+            \App\Jobs\EvaluatePractice::dispatch($attempt->id,$attempt->evaluation_revision)->delay(now()->addSeconds(2));
+        }
 
         return ApiResponse::ok($message, 'Transcript saved.', [], 201);
     }
@@ -61,6 +78,7 @@ class MarkRealtimeController extends Controller
         ]);
 
         $conversation = Conversation::with('skill')->findOrFail($data['conversation_id']);
+        abort_if($conversation->attempt && $conversation->attempt->status !== 'active', 409, 'This exercise has ended.');
         $skill = $conversation->skill;
 
         if (! $skill?->supports_voice) {
@@ -75,23 +93,23 @@ class MarkRealtimeController extends Controller
         }
 
         try {
-            // The same instructions the written turns run on, so Mark is the same person either
-            // way; a skill that opens says so here too, since a spoken patient also speaks first.
-            $instructions = trim(implode("\n\n", array_filter([
-                (string) $skill->system_prompt,
-                filled($conversation->context) ? "Za ovaj razgovor vrijedi: {$conversation->context}" : null,
-                // Only the spoken path gets this: hesitation and trailing off read as noise in
-                // writing, and as a person out loud.
-                (string) $skill->voice_style,
-                $skill->opens_conversation ? (string) $skill->opening_prompt : null,
-            ])));
+            $history = $conversation->messages()->whereIn('role', ['user', 'assistant'])
+                ->get(['id', 'role', 'body'])->toArray();
+            $opens = $skill->opens_conversation && count($history) === 0;
+            $instructions = app(MarkInstructions::class)->for($conversation, voice: true);
+            $instructions .= "\n\n".($opens
+                ? ($conversation->attempt ? 'Begin the authored practice encounter with its brief and visible facts. Do not reveal hidden facts.' : (string) $skill->opening_prompt)
+                : 'Nastavljaš isti razgovor. Prethodne poruke će biti učitane prije nego čuješ korisnika. Ne predstavljaj se ponovo i ne započinji novi slučaj. Čekaj sljedeću poruku.');
 
             $secret = $openai->mint(
                 $instructions,
                 $conversation->voice,
                 $conversation->context,
                 $skill->reply_modality === 'text',
+                $conversation->attempt ? \App\Services\Practice::tools() : [],
             );
+            $secret['history'] = $history;
+            $secret['opens_conversation'] = $opens;
         } catch (\Throwable $e) {
             return ApiResponse::fail('Could not start a voice session.', ['openai' => [$e->getMessage()]], 502);
         }
@@ -99,7 +117,7 @@ class MarkRealtimeController extends Controller
         return ApiResponse::ok($secret, 'Voice session ready.', [
             'conversation_id' => $conversation->id,
             'skill' => $skill->key,
-            'opens_conversation' => $skill->opens_conversation,
+            'opens_conversation' => $opens,
         ]);
     }
 

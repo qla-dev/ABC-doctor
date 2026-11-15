@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Route;
 /*
  * Mark's messaging protocol.
  *
- * No auth yet, on purpose: this is a local spike and Sanctum is a decision that belongs with the
- * first real user, not with the first message. Nothing here is safe to expose beyond localhost.
+ * Sanctum authenticates mobile clients; conversation policies enforce ownership.
  */
 
 Route::get('health', fn () => \App\Support\ApiResponse::ok(
@@ -19,6 +18,10 @@ Route::get('health', fn () => \App\Support\ApiResponse::ok(
     'ABC Doctor API is healthy.',
 ));
 
+Route::post('auth/login', [\App\Http\Controllers\Api\AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::middleware(['auth:sanctum', \App\Http\Middleware\OwnConversation::class])->group(function () {
+Route::post('auth/logout', [\App\Http\Controllers\Api\AuthController::class,'logout']);
+Route::get('auth/me', fn(\Illuminate\Http\Request $r) => \App\Support\ApiResponse::ok($r->user()->only('id','name','email')));
 Route::get('mark/skills', [MarkSkillController::class, 'index']);
 
 Route::get('conversations', [ConversationController::class, 'index']);
@@ -38,3 +41,12 @@ Route::post('mark/realtime/transcription', [MarkRealtimeController::class, 'tran
 Route::post('mark/transcribe', [MarkTranscriptionController::class, 'store'])->middleware('throttle:30,1');
 
 Route::post('messages', [MessageController::class, 'store']);
+
+
+Route::get('practice/workflows', [\App\Http\Controllers\Api\PracticeController::class,'workflows']);
+Route::put('practice/preferences', [\App\Http\Controllers\Api\PracticeController::class,'preferences']);
+Route::post('practice/start', [\App\Http\Controllers\Api\PracticeController::class,'start']);
+Route::get('practice/{conversation}', [\App\Http\Controllers\Api\PracticeController::class,'show']);
+Route::post('practice/{conversation}/events', [\App\Http\Controllers\Api\PracticeController::class,'event']);
+Route::post('practice/{conversation}/finish', [\App\Http\Controllers\Api\PracticeController::class,'finish'])->middleware('throttle:10,1');
+});

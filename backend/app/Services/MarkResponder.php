@@ -29,7 +29,7 @@ class MarkResponder
      * they render, a colleague answering a question does not answer in headings.
      */
     private const STYLE = <<<'TXT'
-    Piši kao što govoriš, kolegi koji je pitao. Cijele rečenice, bez zvjezdica,
+    Piši kao što govoriš, u svojoj dodijeljenoj ulozi. Cijele rečenice, bez zvjezdica,
     bez crtica na početku reda, bez naslova i bez podebljavanja — ništa od toga se
     ovdje ne prikazuje kako treba i čita se kao izvještaj umjesto kao odgovor.
     Ako nabrajaš, nabroji u rečenici: prvo ovo, pa ono, a pazi na treće.
@@ -40,18 +40,13 @@ class MarkResponder
     public function __construct(private readonly OpenRouterClient $client) {}
 
     /**
-     * The skill's instructions plus whatever this thread was opened about. A simulator told
-     * "58, male, cardiology, hard" plays that patient; one told nothing invents its own.
+     * Shared role and saved case, followed by the formatting rules for written replies.
      */
     private function instructions(Conversation $conversation): string
     {
-        $skill = $conversation->skill;
         $parts = array_filter([
-            (string) $skill?->system_prompt,
+            app(MarkInstructions::class)->for($conversation),
             trim(preg_replace('/^[ \t]+/m', '', self::STYLE)),
-            filled($conversation->context) ? "Za ovaj razgovor vrijedi: {$conversation->context}" : null,
-            // Last line of the one system instruction, where it outweighs the history above it.
-            filled($skill?->turn_reminder) ? "OBAVEZNO PRAVILO: {$skill->turn_reminder}" : null,
         ]);
 
         return trim(implode("\n\n", $parts));
@@ -70,7 +65,7 @@ class MarkResponder
         }
 
         if (! $this->client->configured()) {
-            return $this->persist($conversation, 'Dobar dan, doktore.', $conversation->modality, [
+            return $this->persist($conversation, $conversation->patient_case['opening_line'] ?? 'Dobar dan, doktore.', $conversation->modality, [
                 'stub' => true,
                 'reason' => 'OPENROUTER_API_KEY is not set.',
                 'opening' => true,
@@ -90,7 +85,7 @@ class MarkResponder
                 'opening' => true,
             ]);
         } catch (\Throwable $e) {
-            return $this->persist($conversation, 'Dobar dan, doktore.', $conversation->modality, [
+            return $this->persist($conversation, $conversation->patient_case['opening_line'] ?? 'Dobar dan, doktore.', $conversation->modality, [
                 'stub' => true,
                 'reason' => $e->getMessage(),
                 'opening' => true,
@@ -158,8 +153,12 @@ class MarkResponder
 
         $history = $conversation->messages()
             ->whereIn('role', [Message::ROLE_USER, Message::ROLE_ASSISTANT])
-            ->get()
-            ->slice(-self::HISTORY_LIMIT);
+            ->get();
+
+        // Legacy patients have no dossier: their earlier answers are the only saved facts.
+        if ($conversation->skill?->key !== 'patient_simulator') {
+            $history = $history->slice(-self::HISTORY_LIMIT);
+        }
 
         foreach ($history as $message) {
             $last = count($messages) - 1;
@@ -234,7 +233,7 @@ class MarkResponder
         $heard = trim($incoming->body);
 
         return match ($skillKey) {
-            'patient_simulator' => "(pacijent) Čuo sam vas: \"{$heard}\". Boli me otkad sam se jutros probudio.",
+            'patient_simulator' => 'Nisam razumio pitanje. Možete li ponoviti?',
             'consultant' => "Na osnovu \"{$heard}\" — prvo razmisli o diferencijalnoj, pa o sljedećem koraku.",
             'dictaphone' => "Zapisano: {$heard}",
             'study_buddy' => "Pitanje na osnovu \"{$heard}\": koji je prvi korak u zbrinjavanju?",

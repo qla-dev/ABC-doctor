@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Message extends Model
 {
     public const ROLE_USER = 'user';
+
     public const ROLE_ASSISTANT = 'assistant';
 
-    protected $fillable = ['conversation_id', 'role', 'body', 'modality', 'meta', 'sent_at'];
+    protected $fillable = ['conversation_id', 'role', 'body', 'modality', 'meta', 'sent_at', 'realtime_item_id'];
 
     protected function casts(): array
     {
