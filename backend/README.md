@@ -102,10 +102,9 @@ After configuring the environment:
 composer install
 php artisan migrate
 php artisan practice:admin admin@example.com
-php artisan queue:work --timeout=180 --tries=2
 ```
 
-`practice:admin` asks for a name and password privately, refuses to modify an existing account, and creates the initial administrator. Set `OPENAI_API_KEY` for voice and `OPENROUTER_API_KEY` for drafting/review/evaluation. Use `QUEUE_CONNECTION=database` and `DB_QUEUE_RETRY_AFTER=240` (or a larger value); run the worker continuously. Composer publishes Filament assets automatically. Use HTTPS outside local development.
+`practice:admin` asks for a name and password privately, refuses to modify an existing account, and creates the initial administrator. Set `OPENAI_API_KEY` for voice and `OPENROUTER_API_KEY` for drafting/review/evaluation. Practice evaluation defaults to `PRACTICE_EVALUATION_QUEUE=sync`, so no worker is needed on shared hosting. To enable background evaluation later, set `PRACTICE_EVALUATION_QUEUE=database`, use `DB_QUEUE_RETRY_AFTER=240` or larger, and keep `php artisan queue:work --timeout=180 --tries=2` running. Composer publishes Filament assets automatically. Use HTTPS outside local development.
 
 In **Workflows**, click **Add starter examples**. This creates three workflow drafts and nine case drafts without overwriting existing records. Review the content and references, publish each workflow and its cases, and create doctor accounts in **Users**. There is no public account registration. Existing Mark skill editing is available under **Mark Skills**; old unrestricted conversation-inspection pages have been retired. Unowned legacy conversations remain inaccessible until a deliberate ownership migration is designed.
 

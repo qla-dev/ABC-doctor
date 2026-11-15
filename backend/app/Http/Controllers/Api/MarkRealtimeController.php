@@ -58,7 +58,7 @@ class MarkRealtimeController extends Controller
         if ($message->wasRecentlyCreated && ($attempt = $conversation->attempt) && $attempt->status !== 'active') {
             $attempt->increment('evaluation_revision');
             $attempt->update(['status'=>'evaluating','report'=>null]);
-            \App\Jobs\EvaluatePractice::dispatch($attempt->id,$attempt->evaluation_revision)->delay(now()->addSeconds(2));
+            \App\Jobs\EvaluatePractice::dispatch($attempt->id,$attempt->evaluation_revision)->onConnection(config('practice.evaluation_connection'))->delay(now()->addSeconds(2));
         }
 
         return ApiResponse::ok($message, 'Transcript saved.', [], 201);

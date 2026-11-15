@@ -102,6 +102,7 @@ class PracticeTest extends TestCase
         $this->postJson($url.'/finish')->assertOk();
         $this->postJson($url.'/finish')->assertOk();
         Queue::assertPushed(EvaluatePractice::class, 1);
+        Queue::assertPushed(EvaluatePractice::class, fn ($job) => $job->connection === 'sync');
         $this->postJson('/api/mark/realtime/session', ['conversation_id' => $c['id']])->assertStatus(409);
         $this->postJson('/api/mark/realtime/transcript', ['conversation_id' => $c['id'], 'role' => 'user', 'body' => 'late final turn', 'item_id' => 'late_1'])->assertCreated();
         Queue::assertPushed(EvaluatePractice::class, 2);

@@ -61,7 +61,7 @@ class PracticeController extends Controller
             $a = $conversation->attempt()->lockForUpdate()->firstOrFail();
             if (in_array($a->status, ['active', 'evaluation_failed'])) {
                 $a->update(['status' => 'evaluating', 'evaluation_revision' => $a->evaluation_revision + 1]);
-                EvaluatePractice::dispatch($a->id, $a->evaluation_revision)->afterCommit();
+                EvaluatePractice::dispatch($a->id, $a->evaluation_revision)->onConnection(config('practice.evaluation_connection'))->afterCommit();
             }
 
 return $a;
