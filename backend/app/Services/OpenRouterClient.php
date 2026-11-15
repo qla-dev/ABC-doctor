@@ -29,7 +29,7 @@ class OpenRouterClient
      *
      * @throws \RuntimeException when the call fails or comes back without a reply
      */
-    public function chat(array $messages, ?string $preferred = null): array
+    public function chat(array $messages, ?string $preferred = null, array $tools = [], ?callable $onTool = null): array
     {
         $models = array_values(array_unique(array_filter([
             $preferred,
@@ -41,7 +41,17 @@ class OpenRouterClient
 
         foreach ($models as $model) {
             try {
-                return $this->call($model, $messages);
+                $turns = $messages;
+                for ($round = 0; $round < 8; $round++) {
+                    $reply = $this->call($model, $turns, $tools);
+                    if (empty($reply['tool_calls'])) return $reply;
+                    $turns[] = ['role' => 'assistant', 'content' => $reply['content'] ?: null, 'tool_calls' => $reply['tool_calls']];
+                    foreach ($reply['tool_calls'] as $tool) {
+                        $result = $onTool ? $onTool($tool['function']['name'], json_decode($tool['function']['arguments'], true, 512, JSON_THROW_ON_ERROR), $tool['id']) : ['error' => 'Tool unavailable'];
+                        $turns[] = ['role' => 'tool', 'tool_call_id' => $tool['id'], 'content' => json_encode($result)];
+                    }
+                }
+                throw new \RuntimeException('AI exceeded the action limit. Please retry.');
             } catch (\RuntimeException $e) {
                 // A dead slug or a rate limit on the primary should cost a retry, not the turn.
                 $last = $e;
@@ -55,7 +65,7 @@ class OpenRouterClient
      * @param list<array{role: string, content: string}> $messages
      * @return array{content: string, model: string, usage: array<string, mixed>, latency_ms: int}
      */
-    private function call(string $model, array $messages): array
+    private function call(string $model, array $messages, array $tools = []): array
     {
         $started = microtime(true);
 
@@ -70,7 +80,7 @@ class OpenRouterClient
             ->post(rtrim((string) config('services.openrouter.base_url'), '/').'/chat/completions', [
                 'model' => $model,
                 'messages' => $messages,
-            ]);
+            ] + ($tools ? ['tools' => $tools] : []));
 
         $latency = (int) round((microtime(true) - $started) * 1000);
 
@@ -85,12 +95,14 @@ class OpenRouterClient
 
         $content = $response->json('choices.0.message.content');
 
-        if (! is_string($content) || trim($content) === '') {
+        $toolCalls = $response->json('choices.0.message.tool_calls') ?? [];
+        if (! $toolCalls && (! is_string($content) || trim($content) === '')) {
             throw new \RuntimeException('OpenRouter returned no content.');
         }
 
         return [
-            'content' => trim($content),
+            'content' => trim($content ?? ''),
+            'tool_calls' => $toolCalls,
             'model' => $model,
             'usage' => (array) ($response->json('usage') ?? []),
             'latency_ms' => $latency,

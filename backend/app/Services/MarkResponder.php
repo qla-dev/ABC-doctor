@@ -75,7 +75,7 @@ class MarkResponder
         try {
             $result = $this->client->chat([
                 ['role' => 'system', 'content' => $this->instructions($conversation)],
-                ['role' => 'user', 'content' => (string) $skill->opening_prompt],
+                ['role' => 'user', 'content' => ($conversation->attempt ? 'Begin the authored practice encounter with its brief and visible facts. Do not reveal hidden facts.' : (string) $skill->opening_prompt)],
             ], $skill->model);
 
             return $this->persist($conversation, $result['content'], $conversation->modality, [
@@ -98,6 +98,7 @@ class MarkResponder
         $skill = $conversation->skill;
 
         if (! $this->client->configured()) {
+            if ($incoming->meta['mode'] ?? null) throw new \RuntimeException('AI reply unavailable. Please retry this turn.');
             return $this->write($conversation, $this->canned($skill?->key, $incoming), $incoming, [
                 'stub' => true,
                 'reason' => 'OPENROUTER_API_KEY is not set.',
@@ -108,6 +109,16 @@ class MarkResponder
             $result = $this->client->chat(
                 $this->messages($conversation, $this->instructions($conversation)),
                 $conversation->skill?->model,
+                $conversation->attempt ? array_map(fn ($tool) => ['type' => 'function', 'function' => array_diff_key($tool, ['type' => true])], Practice::tools()) : [],
+                $conversation->attempt ? function ($name, $args, $id) use ($conversation) {
+                    if ($name !== 'record_practice_event') return ['error' => 'Unknown action'];
+                    $data = \Illuminate\Support\Facades\Validator::make($args, [
+                        'kind' => 'required|in:action,stage,finish_requested', 'description' => 'required|string|max:2000', 'stage' => 'nullable|string|max:120',
+                    ])->validate();
+                    if ($data['kind'] === 'stage' && ! in_array($data['stage'] ?? null, array_column($conversation->attempt->snapshot['workflow']['stages'], 'name'))) return ['error' => 'Unknown stage'];
+                    $conversation->attempt->events()->firstOrCreate(['event_key' => $id], ['kind' => $data['kind'], 'payload' => $data]);
+                    return ['recorded' => true];
+                } : null,
             );
 
             return $this->write($conversation, $result['content'], $incoming, [
@@ -116,6 +127,7 @@ class MarkResponder
                 'latency_ms' => $result['latency_ms'],
             ]);
         } catch (\Throwable $e) {
+            if ($incoming->meta['mode'] ?? null) throw new \RuntimeException('AI reply unavailable. Please retry this turn.');
             return $this->write($conversation, $this->canned($skill?->key, $incoming), $incoming, [
                 'stub' => true,
                 'reason' => $e->getMessage(),

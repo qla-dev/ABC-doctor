@@ -204,4 +204,21 @@ class PracticeTest extends TestCase
         $this->actingAs($this->doctor, 'sanctum')->getJson('/api/conversations/'.$c->id)->assertNotFound();
         $this->assertNull($c->fresh()->user_id);
     }
+    public function test_backend_modes_keep_the_case_and_record_ai_actions(): void
+    {
+        config(['services.openrouter.key' => 'test']);
+        Http::fake(['*chat/completions' => Http::sequence()
+            ->push(['choices' => [['message' => ['content' => 'Opening brief.']]]])
+            ->push(['choices' => [['message' => ['content' => null, 'tool_calls' => [['id' => 'action_1', 'type' => 'function', 'function' => ['name' => 'record_practice_event', 'arguments' => json_encode(['kind' => 'action', 'description' => 'Doctor examined the patient.'])]]]]]]])
+            ->push(['choices' => [['message' => ['content' => 'The examination finding.']]]])]);
+        $c = $this->actingAs($this->doctor, 'sanctum')->postJson('/api/practice/start', ['mode' => 'text_text'])->assertCreated()->json('data');
+        $this->assertCount(1, $c['messages']);
+        $snapshot = Conversation::find($c['id'])->attempt->snapshot;
+        $this->postJson('/api/messages', ['conversation_id' => $c['id'], 'body' => 'I examine the patient.', 'mode' => 'text_text'])->assertCreated();
+        $attempt = Conversation::find($c['id'])->attempt;
+        $this->assertSame($snapshot, $attempt->snapshot);
+        $this->assertSame(1, $attempt->events()->where('event_key', 'action_1')->count());
+        Http::assertSentCount(3);
+    }
+
 }

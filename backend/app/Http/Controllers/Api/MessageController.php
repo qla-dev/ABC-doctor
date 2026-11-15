@@ -29,12 +29,15 @@ class MessageController extends Controller
             'conversation_id' => ['required', 'integer', 'exists:conversations,id'],
             'body' => ['required', 'string', 'max:4000'],
             'modality' => ['nullable', 'string', 'in:text,voice'],
+            'mode' => ['sometimes', 'required', \App\Support\ConversationMode::RULE],
+            'client_turn_id' => ['sometimes', 'required', 'uuid'],
         ]);
 
         $conversation = Conversation::with('skill')->findOrFail($data['conversation_id']);
         abort_if($conversation->attempt && $conversation->attempt->status !== 'active',409,'This exercise has ended.');
         // The thread's mode is the default; a request may still name one explicitly.
-        $modality = $data['modality'] ?? $conversation->modality;
+        if (isset($data['mode'])) \App\Support\ConversationMode::validate($data['mode'], $conversation->skill, false);
+        $modality = isset($data['mode']) ? \App\Support\ConversationMode::input($data['mode']) : ($data['modality'] ?? $conversation->modality);
 
         // The skill's flags are the contract, so they are enforced here rather than trusted to
         // the client that drew the picker.
@@ -45,20 +48,37 @@ class MessageController extends Controller
             );
         }
 
-        $sent = Message::create([
-            'conversation_id' => $conversation->id,
-            'role' => Message::ROLE_USER,
-            'body' => $data['body'],
-            'modality' => $modality,
-            'sent_at' => now(),
-        ]);
+        // Serialize turns on the conversation, including retries whose first HTTP response was lost.
+        // The reply and its input commit together; a crashed worker leaves neither half behind.
+        try {
+            [$sent, $reply, $opening] = \Illuminate\Support\Facades\DB::transaction(function () use ($conversation, $data, $modality, $mark) {
+                $conversation = Conversation::whereKey($conversation->id)->lockForUpdate()->firstOrFail();
+                $key = isset($data['client_turn_id']) ? 'turn_'.$data['client_turn_id'] : null;
+                if ($key && ($sent = $conversation->messages()->where('realtime_item_id', $key)->first())) {
+                    abort_unless($sent->body === $data['body'], 409, 'Turn identifier already used.');
+                    $reply = $conversation->messages()->where('realtime_item_id', 'reply_'.$data['client_turn_id'])->firstOrFail();
+                    return [$sent, $reply, null];
+                }
+                $opening = ! $conversation->messages()->exists() ? $mark->open($conversation) : null;
+                $sent = Message::create([
+                    'conversation_id' => $conversation->id, 'role' => Message::ROLE_USER,
+                    'body' => $data['body'], 'modality' => $modality,
+                    'realtime_item_id' => $key, 'sent_at' => now(),
+                    'meta' => ['mode' => $data['mode'] ?? null, 'status' => 'completed'],
+                ]);
+                $reply = $mark->reply($conversation, $sent);
+                if ($key) $reply->update(['realtime_item_id' => 'reply_'.$data['client_turn_id']]);
+                $conversation->update(['last_message_at' => $reply->sent_at]);
+                return [$sent, $reply, $opening];
+            });
 
-        $reply = $mark->reply($conversation, $sent);
-
-        $conversation->update(['last_message_at' => $reply->sent_at]);
+        } catch (\RuntimeException $e) {
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) throw $e;
+            return ApiResponse::fail('AI reply unavailable. Retry this turn.', [], 503);
+        }
 
         return ApiResponse::ok(
-            ['sent' => $sent, 'reply' => $reply],
+            ['sent' => $sent, 'reply' => $reply, 'opening' => $opening],
             'Message sent.',
             ['conversation_id' => $conversation->id],
             201,

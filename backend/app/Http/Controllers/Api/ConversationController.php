@@ -33,6 +33,7 @@ class ConversationController extends Controller
         $data = $request->validate([
             'skill' => ['required', 'string', 'exists:mark_skills,key'],
             'modality' => ['nullable', 'string', 'in:text,voice'],
+            'mode' => ['sometimes', 'required', \App\Support\ConversationMode::RULE],
             'context' => ['nullable', 'string', 'max:1000'],
             'sex' => ['nullable', 'string', 'in:M,F,any'],
             'title' => ['nullable', 'string', 'max:120'],
@@ -45,9 +46,10 @@ class ConversationController extends Controller
 
         $skill = MarkSkill::where('key', $data['skill'])->firstOrFail();
 
-        // Chosen here and fixed for the thread's life: a consultation that began spoken stays
-        // spoken, and switching mid-thread would leave half its turns unplayable.
-        $modality = $data['modality'] ?? ($skill->supports_text ? 'text' : 'voice');
+        if (isset($data['mode'])) {
+            \App\Support\ConversationMode::validate($data['mode'], $skill);
+        }
+        $modality = isset($data['mode']) ? \App\Support\ConversationMode::input($data['mode']) : ($data['modality'] ?? ($skill->supports_text ? 'text' : 'voice'));
 
         if (! $skill->accepts($modality)) {
             return ApiResponse::fail(
@@ -75,7 +77,7 @@ class ConversationController extends Controller
         // Some skills speak first — a patient is sitting there before anyone asks anything.
         // Which ones is configuration on the skill rather than a branch here.
         // A spoken opening is generated once, by Realtime, from the saved case.
-        if ($modality !== 'voice' && ($opening = $mark->open($conversation))) {
+        if (($data['mode'] ?? ($modality === 'voice' ? 'high_quality_voice' : 'text_text')) !== 'high_quality_voice' && ($opening = $mark->open($conversation))) {
             $conversation->update(['last_message_at' => $opening->sent_at]);
         }
 

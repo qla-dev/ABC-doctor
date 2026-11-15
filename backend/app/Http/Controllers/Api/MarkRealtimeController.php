@@ -80,6 +80,8 @@ class MarkRealtimeController extends Controller
         $conversation = Conversation::with('skill')->findOrFail($data['conversation_id']);
         abort_if($conversation->attempt && $conversation->attempt->status !== 'active', 409, 'This exercise has ended.');
         $skill = $conversation->skill;
+        $request->validate(['mode' => ['sometimes', 'required', \App\Support\ConversationMode::RULE]]);
+        if ($request->has('mode')) \App\Support\ConversationMode::validate($request->input('mode'), $skill, true);
 
         if (! $skill?->supports_voice) {
             return ApiResponse::fail(

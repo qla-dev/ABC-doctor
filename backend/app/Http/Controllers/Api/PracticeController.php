@@ -28,9 +28,14 @@ class PracticeController extends Controller
 
     public function start(Request $r, Practice $p)
     {
-        $d = $r->validate(['workflow_id' => 'nullable|integer|exists:workflows,id']);
+        $d = $r->validate(['workflow_id' => 'nullable|integer|exists:workflows,id', 'mode' => ['sometimes', 'required', \App\Support\ConversationMode::RULE]]);
 
-        return ApiResponse::ok($p->start($r->user(), $d['workflow_id'] ?? null)->load('skill'), 'Practice started.', [], 201);
+        $mode = $d['mode'] ?? 'high_quality_voice';
+        \App\Support\ConversationMode::validate($mode, \App\Models\MarkSkill::where('key', 'patient_simulator')->firstOrFail());
+        $conversation = $p->start($r->user(), $d['workflow_id'] ?? null);
+        $conversation->update(['modality' => \App\Support\ConversationMode::input($mode)]);
+        if ($mode !== 'high_quality_voice') app(\App\Services\MarkResponder::class)->open($conversation);
+        return ApiResponse::ok($conversation->load(['skill', 'messages']), 'Practice started.', [], 201);
     }
 
     public function show(Conversation $conversation)
