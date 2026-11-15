@@ -50,6 +50,7 @@ class PracticeTest extends TestCase
     public function test_login_and_owner_access_and_hidden_case(): void
     {
         $this->getJson('/api/practice/workflows')->assertUnauthorized();
+        $this->get('/api/practice/workflows')->assertUnauthorized();
         $this->postJson('/api/auth/login', ['email' => $this->doctor->email, 'password' => 'wrong'])->assertUnprocessable();
         $login = $this->postJson('/api/auth/login', ['email' => $this->doctor->email, 'password' => 'password'])->assertOk()->json('data');
         $this->assertNotEmpty($login['token']);
