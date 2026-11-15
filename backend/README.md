@@ -114,6 +114,9 @@ Doctors sign in in React Native, open **Voice practice**, enable workflows, and 
 
 AI answers unscripted questions using the authored case and conversation history. Compatible improvised details belong to the attempt, never the scenario definition. Rubrics assess meaning and valid alternatives, not exact phrases. Significant actions and stage changes are recorded; prerequisites and alternate routes are plain-language author instructions, interpreted by AI rather than a deterministic clinical state machine. The evaluator cites transcript excerpts, computes equal-weight criterion credit (met=1, partial=0.5), excludes non-applicable criteria and marks uncertain/incomplete evidence provisional. AI is not guaranteed contradiction-free and does not certify physical procedural skill.
 
+An encounter without recorded doctor dialogue returns unassessed feedback without calling AI.
+Recording gaps suppress the numerical score and cannot turn missing dialogue into missed clinical criteria.
+
 Voice requires a native development build supporting the existing WebRTC modules. Configure `EXPO_PUBLIC_API_URL` on the mobile app to point to this backend. Live voice verification requires a valid OpenAI key. The key supplied for the 2026-11-15 deployment returned an expired-key response and must be replaced.
 
 Verification:

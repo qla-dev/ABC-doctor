@@ -143,6 +143,42 @@ class PracticeTest extends TestCase
         }
     }
 
+    public function test_an_encounter_without_doctor_dialogue_is_not_scored_or_sent_to_ai(): void
+    {
+        $c = $this->start();
+        $a = PracticeAttempt::where('conversation_id', $c['id'])->firstOrFail();
+        $this->mock(PracticeAi::class, fn ($mock) => $mock->shouldNotReceive('json'));
+        foreach ([false, true] as $hasGreeting) {
+            if ($hasGreeting) {
+                $a->conversation->messages()->create(['role' => 'assistant', 'body' => 'Hello doctor', 'modality' => 'voice', 'sent_at' => now()]);
+            }
+            (new EvaluatePractice($a->id, 0))->handle(app(PracticeAi::class));
+            $r = $a->fresh()->report;
+            $this->assertNull($r['score']);
+            $this->assertTrue($r['provisional']);
+            $this->assertSame([], $r['critical_errors']);
+            $this->assertSame(['unclear'], array_values(array_unique(array_column($r['criteria'], 'status'))));
+        }
+    }
+
+    public function test_recording_gaps_cannot_be_scored_as_clinical_omissions(): void
+    {
+        $c = $this->start();
+        $a = PracticeAttempt::where('conversation_id', $c['id'])->firstOrFail();
+        $a->conversation->messages()->create(['role' => 'user', 'body' => 'Hello, I am your doctor.', 'modality' => 'voice', 'sent_at' => now()]);
+        $a->events()->create(['event_key' => 'gap', 'kind' => 'transcript_gap', 'payload' => []]);
+        $criteria = array_merge($a->snapshot['workflow']['criteria'], $a->snapshot['case']['criteria']);
+        $results = array_map(fn ($i) => ['index' => $i, 'status' => 'missed', 'feedback' => 'No evidence', 'evidence' => []], array_keys($criteria));
+        $this->mock(PracticeAi::class, fn ($mock) => $mock->shouldReceive('json')->once()
+            ->withArgs(fn ($instructions, $data) => $data['transcript_complete'] === false)
+            ->andReturn(['summary' => 'Incomplete recording', 'strengths' => [], 'improvements' => [], 'critical_errors' => [], 'provisional' => false, 'criteria' => $results]));
+        (new EvaluatePractice($a->id, 0))->handle(app(PracticeAi::class));
+        $r = $a->fresh()->report;
+        $this->assertNull($r['score']);
+        $this->assertTrue($r['provisional']);
+        $this->assertSame(['unclear'], array_values(array_unique(array_column($r['criteria'], 'status'))));
+    }
+
     public function test_voice_prompt_includes_frozen_case_and_tools(): void
     {
         config(['services.openai.key' => 'test']);
@@ -165,7 +201,7 @@ class PracticeTest extends TestCase
     public function test_unowned_legacy_conversations_are_never_assigned_automatically(): void
     {
         $c = Conversation::create(['mark_skill_id' => MarkSkill::first()->id, 'modality' => 'voice']);
-        $this->actingAs($this->doctor,'sanctum')->getJson('/api/conversations/'.$c->id)->assertNotFound();
+        $this->actingAs($this->doctor, 'sanctum')->getJson('/api/conversations/'.$c->id)->assertNotFound();
         $this->assertNull($c->fresh()->user_id);
     }
 }
