@@ -57,6 +57,22 @@ return [
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
     ],
 
+    'google' => [
+        'client_ids' => array_values(array_unique(array_filter([
+            ...array_map('trim', explode(',', (string) env('GOOGLE_CLIENT_IDS', ''))),
+            trim((string) env('GOOGLE_WEB_CLIENT_ID', '')),
+            trim((string) env('GOOGLE_IOS_CLIENT_ID', '')),
+            trim((string) env('GOOGLE_ANDROID_CLIENT_ID', '')),
+        ]))),
+    ],
+
+    'apple' => [
+        'client_ids' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('APPLE_CLIENT_IDS', ''))
+        ))),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

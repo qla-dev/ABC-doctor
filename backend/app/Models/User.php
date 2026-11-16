@@ -25,6 +25,8 @@ class User extends Authenticatable implements \Filament\Models\Contracts\Filamen
         'name',
         'email',
         'password',
+        'google_id',
+        'apple_id',
     ];
 
     /**

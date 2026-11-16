@@ -19,6 +19,8 @@ Route::get('health', fn () => \App\Support\ApiResponse::ok(
 ));
 
 Route::post('auth/login', [\App\Http\Controllers\Api\AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('auth/google', [\App\Http\Controllers\Api\AuthController::class, 'google'])->middleware('throttle:10,1');
+Route::post('auth/apple', [\App\Http\Controllers\Api\AuthController::class, 'apple'])->middleware('throttle:10,1');
 Route::middleware(['auth:sanctum', \App\Http\Middleware\OwnConversation::class])->group(function () {
 Route::post('auth/logout', [\App\Http\Controllers\Api\AuthController::class,'logout']);
 Route::get('auth/me', fn(\Illuminate\Http\Request $r) => \App\Support\ApiResponse::ok($r->user()->only('id','name','email')));
