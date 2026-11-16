@@ -32,7 +32,7 @@ class Conversation extends Model
         }
 
         return Arr::only($case, ['name', 'age', 'gender', 'specialty', 'difficulty']) + [
-            'source' => ['vitals' => $case['source']['vitals'] ?? [], 'physicalExamFindings' => [], 'investigations' => []],
+            'source' => Arr::only($case['source'] ?? [], ['vitals', 'physicalExamFindings', 'investigations']),
         ];
     }
 
