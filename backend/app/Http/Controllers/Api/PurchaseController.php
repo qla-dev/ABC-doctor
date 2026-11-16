@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Purchase;
+use App\Models\User;
 use App\Services\RevenueCatVerifier;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -69,7 +70,7 @@ class PurchaseController extends Controller
         $store = $request->input('store', $verified['store'] ?? 'app_store');
 
         DB::transaction(function () use ($user, $productId, $rcUserId, $store) {
-            $user->lockForUpdate()->refresh();
+            $user = User::lockForUpdate()->find($user->id);
 
             if (isset(self::PRODUCT_MAP[$productId])) {
                 $amounts = self::PRODUCT_MAP[$productId];
@@ -111,13 +112,11 @@ class PurchaseController extends Controller
     {
         $user = $request->user();
 
-        DB::transaction(function () use ($user) {
-            $user->lockForUpdate()->refresh();
+        DB::transaction(function () use (&$user) {
+            $user = User::lockForUpdate()->find($user->id);
             $user->increment('messages_balance', 100);
             $user->increment('voice_minutes_balance', 100);
         });
-
-        $user->refresh();
 
         return $this->balanceResponse($user, 'Recharged +100 messages, +100 minutes.');
     }
