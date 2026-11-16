@@ -27,6 +27,10 @@ class User extends Authenticatable implements \Filament\Models\Contracts\Filamen
         'password',
         'google_id',
         'apple_id',
+        'messages_balance',
+        'voice_minutes_balance',
+        'subscription_tier',
+        'subscription_expires_at',
     ];
 
     /**
@@ -50,6 +54,9 @@ class User extends Authenticatable implements \Filament\Models\Contracts\Filamen
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean', 'disabled_workflows' => 'array',
+            'messages_balance' => 'integer',
+            'voice_minutes_balance' => 'integer',
+            'subscription_expires_at' => 'datetime',
         ];
     }
 }

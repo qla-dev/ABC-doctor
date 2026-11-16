@@ -94,4 +94,9 @@ return [
         ],
     ],
 
+    'revenuecat' => [
+        'secret_key' => env('REVENUECAT_SECRET_KEY'),
+        'allow_sandbox' => env('REVENUECAT_ALLOW_SANDBOX', false),
+    ],
+
 ];

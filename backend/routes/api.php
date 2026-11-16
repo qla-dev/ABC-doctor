@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\MarkSkillController;
 use App\Http\Controllers\Api\MarkTranscriptionController;
+use App\Http\Controllers\Api\PurchaseController;
+use App\Http\Controllers\Api\WebPurchaseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,6 +23,7 @@ Route::get('health', fn () => \App\Support\ApiResponse::ok(
 Route::post('auth/login', [\App\Http\Controllers\Api\AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('auth/google', [\App\Http\Controllers\Api\AuthController::class, 'google'])->middleware('throttle:10,1');
 Route::post('auth/apple', [\App\Http\Controllers\Api\AuthController::class, 'apple'])->middleware('throttle:10,1');
+Route::post('web-purchases/claim', [WebPurchaseController::class, 'claim'])->middleware('throttle:10,1');
 Route::middleware(['auth:sanctum', \App\Http\Middleware\OwnConversation::class])->group(function () {
 Route::post('auth/logout', [\App\Http\Controllers\Api\AuthController::class,'logout']);
 Route::get('auth/me', [\App\Http\Controllers\Api\AuthController::class,'me']);
@@ -46,6 +49,9 @@ Route::post('mark/realtime/transcription', [MarkRealtimeController::class, 'tran
 Route::post('mark/transcribe', [MarkTranscriptionController::class, 'store'])->middleware('throttle:30,1');
 
 Route::post('messages', [MessageController::class, 'store']);
+
+Route::get('purchases', [PurchaseController::class, 'index']);
+Route::post('purchases', [PurchaseController::class, 'grant']);
 
 
 Route::get('practice/workflows', [\App\Http\Controllers\Api\PracticeController::class,'workflows']);
