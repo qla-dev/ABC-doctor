@@ -52,6 +52,7 @@ Route::post('messages', [MessageController::class, 'store']);
 
 Route::get('purchases', [PurchaseController::class, 'index']);
 Route::post('purchases', [PurchaseController::class, 'grant']);
+Route::post('purchases/recharge', [PurchaseController::class, 'recharge']);
 
 
 Route::get('practice/workflows', [\App\Http\Controllers\Api\PracticeController::class,'workflows']);

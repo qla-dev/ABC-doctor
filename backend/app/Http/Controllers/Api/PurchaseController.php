@@ -107,6 +107,21 @@ class PurchaseController extends Controller
         return $this->balanceResponse($user, 'Purchase granted.');
     }
 
+    public function recharge(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        DB::transaction(function () use ($user) {
+            $user->lockForUpdate()->refresh();
+            $user->increment('messages_balance', 100);
+            $user->increment('voice_minutes_balance', 100);
+        });
+
+        $user->refresh();
+
+        return $this->balanceResponse($user, 'Recharged +100 messages, +100 minutes.');
+    }
+
     private function balanceResponse($user, string $message = 'OK'): JsonResponse
     {
         return ApiResponse::ok([
