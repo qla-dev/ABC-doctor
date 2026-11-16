@@ -3,8 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ScenarioCaseResource\Pages\ManageRecords;
+use App\Filament\Tables\Columns\PublicationColumn;
 use App\Models\ScenarioCase;
-use App\Services\Practice;
 use App\Services\PracticeAi;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -42,7 +42,12 @@ class ScenarioCaseResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('name')->searchable(), TextColumn::make('publication')->state(fn ($record) => $record->archived ? 'Archived' : (! $record->published ? 'Draft' : ($record->only(array_keys($record->published)) == $record->published ? 'Published' : 'Unpublished edits')))->badge(), TextColumn::make('updated_at')->dateTime()->sortable()])->recordActions([EditAction::make(), Action::make('review')->label('Review with AI')->action(function ($record) {
+        return $table->columns([
+            TextColumn::make('name')->searchable(),
+            TextColumn::make('workflow.name')->label('Workflow')->searchable()->sortable()->wrap(),
+            PublicationColumn::make('publication'),
+            TextColumn::make('updated_at')->dateTime()->sortable(),
+        ])->recordActions([EditAction::make(), Action::make('review')->label('Review with AI')->action(function ($record) {
             try {
                 $result = app(PracticeAi::class)->json('Review this fictional training case and workflow for contradictions, missing essential facts, and unfair assessment requirements. Return review_notes string only. Do not modify the case or claim clinical certification.', ['workflow' => $record->workflow->toArray(), 'case' => $record->toArray()]);
                 Notification::make()->title('AI authoring review')->body((string) ($result['review_notes'] ?? 'No review returned.'))->persistent()->send();
@@ -50,7 +55,7 @@ class ScenarioCaseResource extends Resource
                 report($e);
                 Notification::make()->title('Review unavailable; check AI configuration')->danger()->send();
             }
-        }), Action::make('publish')->label('Publish saved draft')->action(fn ($record) => app(Practice::class)->publish($record)), ReplicateAction::make()->excludeAttributes(['starter_key', 'published'])->beforeReplicaSaved(fn ($replica) => $replica->name .= ' (copy)'), Action::make('preview')->url(fn ($record) => route('practice.preview', $record))->openUrlInNewTab()]);
+        }), ReplicateAction::make()->excludeAttributes(['starter_key', 'published'])->beforeReplicaSaved(fn ($replica) => $replica->name .= ' (copy)'), Action::make('preview')->url(fn ($record) => route('practice.preview', $record))->openUrlInNewTab()]);
     }
 
     public static function getPages(): array

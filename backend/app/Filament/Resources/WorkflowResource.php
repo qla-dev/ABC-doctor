@@ -3,9 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WorkflowResource\Pages\ManageRecords;
+use App\Filament\Tables\Columns\PublicationColumn;
 use App\Models\Workflow;
-use App\Services\Practice;
-use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Repeater;
@@ -39,7 +38,11 @@ class WorkflowResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('name')->searchable(), TextColumn::make('publication')->state(fn ($record) => $record->archived ? 'Archived' : (! $record->published ? 'Draft' : ($record->only(array_keys($record->published)) == $record->published ? 'Published' : 'Unpublished edits')))->badge(), TextColumn::make('updated_at')->dateTime()->sortable()])->recordActions([EditAction::make(), Action::make('publish')->label('Publish saved draft')->action(fn ($record) => app(Practice::class)->publish($record)), ReplicateAction::make()->excludeAttributes(['starter_key', 'published'])->beforeReplicaSaved(fn ($replica) => $replica->name .= ' (copy)')]);
+        return $table->columns([
+            TextColumn::make('name')->searchable(),
+            PublicationColumn::make('publication'),
+            TextColumn::make('updated_at')->dateTime()->sortable(),
+        ])->recordActions([EditAction::make(), ReplicateAction::make()->excludeAttributes(['starter_key', 'published'])->beforeReplicaSaved(fn ($replica) => $replica->name .= ' (copy)')]);
     }
 
     public static function getPages(): array
