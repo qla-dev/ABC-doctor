@@ -114,11 +114,19 @@ php artisan serve                 # in backend/
 php artisan about                 # verify boot
 # frontend
 npx expo start                    # in frontend/
+npx expo start --web --port 8082  # web build — MUST be port 8082 (see below)
 npx tsc --noEmit                  # typecheck (clean as of scaffold)
 npx expo-doctor                   # 21/21 at scaffold time
 # web
 npm run dev                       # in web/, port 3000
 ```
+
+## Web social login — port 8082 required
+
+Google OAuth for the web build only works on `http://localhost:8082`. The Google Cloud Console
+web client (`338186716107-j8ifac27k51mlucgmjd9d4hohaarpsef`) has that origin and redirect URI
+whitelisted. If you start the web build on a different port, Google login will fail with
+`redirect_uri_mismatch`. Always use `npx expo start --web --port 8082`.
 
 ## Open decisions
 

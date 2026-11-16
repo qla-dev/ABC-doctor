@@ -34,6 +34,86 @@ class AuthController extends Controller
         return ApiResponse::ok(null);
     }
 
+    public function me(Request $r)
+    {
+        $u = $r->user();
+
+        return ApiResponse::ok([
+            'id' => $u->id,
+            'name' => $u->name,
+            'email' => $u->email,
+            'sign_in_methods' => array_values(array_filter([
+                $u->google_id ? ['provider' => 'google', 'email' => $u->email] : null,
+                $u->apple_id ? ['provider' => 'apple', 'email' => $u->email] : null,
+            ])),
+        ]);
+    }
+
+    public function updateProfile(Request $r)
+    {
+        $d = $r->validate([
+            'name' => 'sometimes|string|max:100',
+        ]);
+
+        $r->user()->update($d);
+
+        return $this->me($r);
+    }
+
+    public function linkMethod(Request $r, string $provider)
+    {
+        abort_unless(in_array($provider, ['google', 'apple'], true), 404);
+
+        $u = $r->user();
+        $providerKey = $provider.'_id';
+
+        if ($u->{$providerKey}) {
+            return ApiResponse::fail("$provider is already linked.", [], 409);
+        }
+
+        if ($provider === 'google') {
+            $r->validate(['id_token' => 'required_without:access_token|string', 'access_token' => 'required_without:id_token|string']);
+            $payload = $r->id_token ? $this->verifyGoogleIdToken($r->id_token) : $this->verifyGoogleAccessToken($r->access_token);
+            $existingUser = User::where('google_id', $payload['sub'])->where('id', '!=', $u->id)->first();
+            if ($existingUser) {
+                return ApiResponse::fail('This Google account is linked to another user.', [], 409);
+            }
+            $u->update(['google_id' => $payload['sub']]);
+        } else {
+            $r->validate(['identity_token' => 'required|string']);
+            $payload = $this->verifyAppleIdentityToken($r->identity_token);
+            $existingUser = User::where('apple_id', $payload['sub'])->where('id', '!=', $u->id)->first();
+            if ($existingUser) {
+                return ApiResponse::fail('This Apple account is linked to another user.', [], 409);
+            }
+            $u->update(['apple_id' => $payload['sub']]);
+        }
+
+        return $this->me($r);
+    }
+
+    public function unlinkMethod(Request $r, string $provider)
+    {
+        abort_unless(in_array($provider, ['google', 'apple'], true), 404);
+
+        $u = $r->user();
+        $providerKey = $provider.'_id';
+
+        if (! $u->{$providerKey}) {
+            return ApiResponse::fail("$provider is not linked.", [], 409);
+        }
+
+        $otherProvider = $provider === 'google' ? 'apple_id' : 'google_id';
+        $hasPassword = $u->password && ! Str::startsWith($u->password, '$2y$10$placeholder');
+        if (! $u->{$otherProvider} && ! $hasPassword) {
+            return ApiResponse::fail('Cannot remove your only sign-in method.', [], 422);
+        }
+
+        $u->update([$providerKey => null]);
+
+        return $this->me($r);
+    }
+
     // ── Google ───────────────────────────────────────────────────────────
 
     public function google(Request $r)

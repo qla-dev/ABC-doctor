@@ -23,7 +23,10 @@ Route::post('auth/google', [\App\Http\Controllers\Api\AuthController::class, 'go
 Route::post('auth/apple', [\App\Http\Controllers\Api\AuthController::class, 'apple'])->middleware('throttle:10,1');
 Route::middleware(['auth:sanctum', \App\Http\Middleware\OwnConversation::class])->group(function () {
 Route::post('auth/logout', [\App\Http\Controllers\Api\AuthController::class,'logout']);
-Route::get('auth/me', fn(\Illuminate\Http\Request $r) => \App\Support\ApiResponse::ok($r->user()->only('id','name','email')));
+Route::get('auth/me', [\App\Http\Controllers\Api\AuthController::class,'me']);
+Route::put('auth/profile', [\App\Http\Controllers\Api\AuthController::class,'updateProfile']);
+Route::post('auth/sign-in-methods/{provider}', [\App\Http\Controllers\Api\AuthController::class,'linkMethod'])->middleware('throttle:10,1');
+Route::delete('auth/sign-in-methods/{provider}', [\App\Http\Controllers\Api\AuthController::class,'unlinkMethod']);
 Route::get('mark/skills', [MarkSkillController::class, 'index']);
 
 Route::get('conversations', [ConversationController::class, 'index']);
